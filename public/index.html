@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mocha~Mist ☁️ — Welcome</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: #fbf7f1;
+      color: #4c3a2f;
+    }
+
+    /* NAVBAR */
+    nav {
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: rgba(255,255,255,0.9);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    nav .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: #6b4024;
+      font-size: 1.3rem;
+    }
+
+    nav .logo img {
+      width: 32px;
+      height: 32px;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 1.5rem;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: #4c3a2f;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #c49a6c;
+    }
+
+    /* HERO */
+    .hero {
+      height: 100vh;
+      background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+        url("https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=2000&q=80") center/cover no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem;
+      color: #fff;
+    }
+
+    .hero h1 {
+      font-size: 3.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      max-width: 600px;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      color: #f8e8d3;
+    }
+
+    .hero button {
+      background: #f4e2cf;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      color: #4c3a2f;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .hero button:hover {
+      transform: scale(1.05);
+      background: #fff;
+    }
+
+    /* LOGIN SECTION */
+    .login-section {
+      padding: 4rem 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 18px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .login-box img {
+      width: 80px;
+      margin-bottom: 1rem;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .input-group label {
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 10px;
+      border: 1px solid #d9cfc4;
+      outline: none;
+    }
+
+    .input-group input:focus {
+      border-color: #c49a6c;
+    }
+
+    /* ROLE CARDS */
+    .role-container {
+      margin: 1.3rem 0;
+      text-align: left;
+    }
+
+    .role-card {
+      border: 1px solid #d9cfc4;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      transition: 0.2s;
+    }
+
+    .role-card.selected {
+      border: 2px solid #c49a6c;
+      background: #f4e2cf;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: #6b4024;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .login-btn:hover {
+      background: #4a2b16;
+    }
+
+    footer {
+      margin-top: 4rem;
+      text-align: center;
+      background: #6b4024;
+      padding: 1rem;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo">
+      <img src="brown-coffee-cup-logo.png" alt="logo" />
+      Mocha~Mist
+    </div>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#login">Login</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <h1>Welcome to Mocha~Mist ☁️</h1>
+    <p>Cloud-powered coffee ordering — connecting Customers, Baristas, and Admins.</p>
+    <button onclick="location.href='#login'">Login Now</button>
+  </section>
+
+  <!-- LOGIN SECTION -->
+  <section class="login-section" id="login">
+    <div class="login-box">
+      <img src="brown-coffee-cup-logo.png" alt="logo" />
+
+      <h2>Login</h2>
+      <p class="subtitle">Access your Mocha~Mist dashboard</p>
+
+      <form id="loginForm">
+
+        <div class="input-group">
+  <label for="email">Email</label>
+  <input
+    type="email"
+    id="email"
+    name="email"
+    autocomplete="email"
+    aria-label="Email"
+    required
+  />
+</div>
+
+<div class="input-group">
+  <label for="password">Password</label>
+  <input
+    type="password"
+    id="password"
+    name="password"
+    autocomplete="current-password"
+    aria-label="Password"
+    required
+  />
+</div>
+        <!-- ROLE SELECT -->
+        <div class="role-container">
+          <p>Select Role</p>
+
+          <div class="role-card selected" data-role="customer">
+            Customer <br><small>Order coffee</small>
+          </div>
+
+          <div class="role-card" data-role="barista">
+            Barista <br><small>Manage orders</small>
+          </div>
+
+          <div class="role-card" data-role="admin">
+            Admin <br><small>Admin panel</small>
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn">Sign In</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    © 2025 Mocha~Mist — All Rights Reserved
+  </footer>
+
+  <!-- ROLE SELECT LOGIC -->
+  <script>
+  document.querySelectorAll(".role-card").forEach(card => {
+    card.addEventListener("click", () => {
+      document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+    });
+  });
+  </script>
+
+  <!-- LOGIN LOGIC -->
+  <script>
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.querySelector(".role-card.selected").dataset.role;
+
+    try {
+      const loginRes = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password, role })
+      });
+
+      const data = await loginRes.json();
+
+      if (!loginRes.ok) {
+        alert(data.message || "Invalid login");
+        return;
+      }
+
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.user.role === "customer")
+        window.location.href = "/customer.html";
+      else if (data.user.role === "barista")
+        window.location.href = "/barista.html";
+      else
+        window.location.href = "/admin.html";
+
+    } catch (err) {
+      console.error(err);
+      alert("Network error — Backend server not running");
+    }
+  });
+  </script>
+
+</body>
+</html>

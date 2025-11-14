@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mocha~Mist — Customer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+
+#cartSection {
+  padding: 20px;
+}
+
+.cart-item {
+  background: white;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-item .name {
+  font-weight: 600;
+  color: #6b4024;
+}
+
+.cart-item .qty {
+  font-size: 14px;
+  color: #7a6c63;
+}
+
+.cart-item .remove {
+  background: #ff4d4d;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cart-item .remove:hover {
+  background: #d93636;
+}
+
+/* Place order button */
+#cartSection button {
+  background: #6b4024;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 15px;
+  cursor: pointer;
+}
+#cartSection button:hover {
+  background: #58321c;
+}
+
+
+    body { 
+      font-family: Poppins, sans-serif; 
+      background:#fbf7f1; 
+      margin:0; 
+    }
+
+    header {
+      background:white; 
+      padding:1rem 2rem; 
+      display:flex;
+      justify-content:space-between; 
+      align-items:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-right a {
+      margin-left:1rem; 
+      text-decoration:none; 
+      color:#6b4024;
+      font-weight:500;
+      cursor:pointer;
+    }
+
+    .container {
+      padding: 1.5rem;
+    }
+
+    h1 {
+      color: #6b4024;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h2>☕ Mocha~Mist</h2>
+  <div class="nav-right">
+    <a onclick="showSection('menu')">Menu</a>
+    <a onclick="showSection('cart')">Cart <span id="cartCount">0</span></a>
+    <a onclick="showSection('orders')">Orders</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <section id="menuSection">
+    <h1>Menu</h1>
+    <div id="menuGrid"></div>
+  </section>
+
+  <section id="cartSection" style="display:none;">
+  <h1>Your Cart</h1>
+  <div id="cartItems"></div>
+  <button onclick="placeOrder()">Place Order</button>
+</section>
+
+<section id="ordersSection" style="display:none;">
+  <h1>My Orders</h1>
+  <div id="ordersList"></div>
+</section>
+
+
+</div> <!-- This closes the container properly -->
+
+
+<!-- MUST load from backend -->
+<script src="http://localhost:5000/socket.io/socket.io.js"></script>
+
+<!-- Load your JS -->
+<script src="/customer.js"></script>
+
+
+</body>
+</html>
