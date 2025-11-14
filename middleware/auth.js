@@ -1,62 +1,56 @@
 // middleware/auth.js
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const db = require("../init_db");
 
-/* ----------------------------------------
-   Verify Access Token from Authorization header
-   Format: Authorization: Bearer <token>
------------------------------------------*/
+// small helper to fetch user by id from SQLite
+const getUserById = (id) =>
+  new Promise((resolve, reject) => {
+    db.get("SELECT * FROM users WHERE id = ?", [id], (err, row) => {
+      if (err) return reject(err);
+      resolve(row);
+    });
+  });
+
 function verifyAccessToken(req, res, next) {
-  const header = req.headers.authorization;
+  const header = req.headers.authorization || "";
+  if (!header) return res.status(401).json({ message: "Missing token" });
 
-  if (!header)
-    return res.status(401).json({ message: "Missing token" });
+  const parts = header.split(" ");
+  if (parts.length !== 2) return res.status(401).json({ message: "Invalid token format" });
 
-  const token = header.split(" ")[1];
-
+  const token = parts[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    req.user = decoded;  // user = { id, email, role }
+    const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    // attach user payload (id, email, role) to req.user
+    req.user = user;
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+  } catch (e) {
+    return res.status(401).json({ message: "Invalid token" });
   }
 }
 
-/* --------------------------------------------------
-   Role-based protection (Admin / Barista only routes)
-   Usage example:
-      router.get("/admin", requireRole("admin"), ...
-----------------------------------------------------*/
-function requireRole(role) {
-  return (req, res, next) => {
-    if (!req.user)
-      return res.status(401).json({ message: "Not authenticated" });
+// factory to require one or more roles
+function requireRoles(...allowedRoles) {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) return res.status(401).json({ message: "Missing token" });
+      // optionally, fetch fresh role from DB to be safe
+      const fresh = await getUserById(req.user.id);
+      if (!fresh) return res.status(401).json({ message: "User not found" });
 
-    if (req.user.role !== role)
-      return res.status(403).json({ message: "Forbidden" });
+      if (!allowedRoles.includes(fresh.role)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
 
-    next();
+      // attach fresh user info
+      req.user = { id: fresh.id, email: fresh.email, role: fresh.role };
+      next();
+    } catch (err) {
+      console.error("requireRoles error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
   };
 }
 
-/* --------------------------------------------------
-   Allow multiple roles
-   requireRoles("barista", "admin")
-----------------------------------------------------*/
-function requireRoles(...roles) {
-  return (req, res, next) => {
-    if (!req.user)
-      return res.status(401).json({ message: "Not authenticated" });
-
-    if (!roles.includes(req.user.role))
-      return res.status(403).json({ message: "Forbidden" });
-
-    next();
-  };
-}
-
-module.exports = {
-  verifyAccessToken,
-  requireRole,
-  requireRoles
-};
+module.exports = { verifyAccessToken, requireRoles, getUserById };
