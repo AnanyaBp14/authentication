@@ -1,22 +1,43 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { pool } = require("../db");
+const db = require("../init_db");
 require("dotenv").config();
 
 const router = express.Router();
-
-// Cookie name (refresh token)
 const COOKIE_NAME = process.env.COOKIE_NAME || "mm_rt";
 
-/* ---------------------------------------------------
-   TOKEN HELPERS
------------------------------------------------------*/
+// SQLite helpers
+const get = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+
+const all = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+
+const run = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) reject(err);
+      else resolve(this); // lastID
+    });
+  });
+
+// TOKEN GENERATORS
 function signAccessToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_ACCESS_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXP || "15m" }
+    { expiresIn: "15m" }
   );
 }
 
@@ -24,13 +45,11 @@ function signRefreshToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXP || "7d" }
+    { expiresIn: "7d" }
   );
 }
 
-/* ---------------------------------------------------
-   LOGIN (Admin, Barista, Customer)
------------------------------------------------------*/
+// LOGIN ROUTE
 router.post("/login", async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -38,74 +57,63 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
 
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE email=?", [
-      email,
-    ]);
+    const user = await get("SELECT * FROM users WHERE email=?", [email]);
 
-    /* ---------------------------------------------------
-       CASE 1: CUSTOMER DOES NOT EXIST → AUTO-REGISTER
-    -----------------------------------------------------*/
-    if (rows.length === 0) {
+    // AUTO REGISTER CUSTOMER
+    if (!user) {
       if (role !== "customer")
         return res.status(401).json({
-          message: "Account does not exist. Only customers auto-register.",
+          message: "Only customers auto-register",
         });
 
       const hashed = await bcrypt.hash(password, 10);
 
-      await pool.query(
+      const insert = await run(
         "INSERT INTO users (email, password, role) VALUES (?, ?, 'customer')",
         [email, hashed]
       );
 
-      const [newUserRows] = await pool.query(
-        "SELECT * FROM users WHERE email=?",
-        [email]
-      );
+      const newUser = {
+        id: insert.lastID,
+        email,
+        role: "customer"
+      };
 
-      const user = newUserRows[0];
-      const accessToken = signAccessToken(user);
-      const refreshToken = signRefreshToken(user);
+      const accessToken = signAccessToken(newUser);
+      const refreshToken = signRefreshToken(newUser);
 
-      await pool.query("UPDATE users SET refresh_token=? WHERE id=?", [
+      await run("UPDATE users SET refresh_token=? WHERE id=?", [
         refreshToken,
-        user.id,
+        newUser.id,
       ]);
 
       res.cookie(COOKIE_NAME, refreshToken, {
         httpOnly: true,
         secure: false,
         sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return res.json({
-        message: "New customer created",
+        message: "Customer registered",
         accessToken,
-        user: { id: user.id, email: user.email, role: user.role },
+        user: newUser,
       });
     }
 
-    /* ---------------------------------------------------
-       CASE 2: USER EXISTS
-    -----------------------------------------------------*/
-    const user = rows[0];
-
-    // Validate Password
+    // EXISTING USER LOGIN
     const valid = await bcrypt.compare(password, user.password);
     if (!valid)
       return res.status(401).json({ message: "Incorrect password" });
 
-    // Role mismatch protection (optional safety)
     if (user.role !== role)
       return res.status(403).json({
-        message: `This account is a ${user.role}. Select correct role.`,
+        message: `This account is ${user.role}. Select correct role.`,
       });
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
-    await pool.query("UPDATE users SET refresh_token=? WHERE id=?", [
+    await run("UPDATE users SET refresh_token=? WHERE id=?", [
       refreshToken,
       user.id,
     ]);
@@ -114,32 +122,29 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.json({
-      message: `${user.role} login success`,
+      message: "Login success",
       accessToken,
-      user: { id: user.id, email: user.email, role: user.role },
+      user,
     });
+
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ---------------------------------------------------
-   LOGOUT
------------------------------------------------------*/
+// LOGOUT
 router.post("/logout", async (req, res) => {
   const token = req.cookies[COOKIE_NAME];
 
   if (!token) return res.json({ message: "Logged out" });
 
-  await pool.query(
-    "UPDATE users SET refresh_token=NULL WHERE refresh_token=?",
-    [token]
-  );
+  await run("UPDATE users SET refresh_token=NULL WHERE refresh_token=?", [
+    token,
+  ]);
 
   res.clearCookie(COOKIE_NAME);
   res.json({ message: "Logged out" });
