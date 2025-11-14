@@ -2,26 +2,29 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../init_db");
+
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
-// Promise helpers for sqlite3
+// SQLite promise helpers
 const all = (sql, params = []) =>
   new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
+      if (err) reject(err);
+      else resolve(rows);
     });
   });
 
 const run = (sql, params = []) =>
   new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
-      if (err) return reject(err);
-      resolve(this); // this.lastID, this.changes
+      if (err) reject(err);
+      else resolve(this);
     });
   });
 
-// PUBLIC — Get full menu
+/* -----------------------------------------------------
+   1) PUBLIC — GET FULL MENU
+------------------------------------------------------*/
 router.get("/", async (req, res) => {
   try {
     const rows = await all("SELECT * FROM menu ORDER BY id ASC");
@@ -32,15 +35,18 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ADMIN/BARISTA: Add menu item
+/* -----------------------------------------------------
+   2) ADMIN/BARISTA — ADD MENU ITEM
+------------------------------------------------------*/
 router.post(
   "/add",
   verifyAccessToken,
   requireRoles("admin", "barista"),
   async (req, res) => {
-    const { name, description = "", category = "", price = 0, img = "" } = req.body;
+    const { name, description, category, price, img } = req.body;
 
-    if (!name || price == null) return res.status(400).json({ message: "Missing fields" });
+    if (!name || price == null)
+      return res.status(400).json({ message: "Missing fields" });
 
     try {
       await run(
@@ -55,14 +61,16 @@ router.post(
   }
 );
 
-// ADMIN/BARISTA: Update item
+/* -----------------------------------------------------
+   3) ADMIN/BARISTA — UPDATE ITEM
+------------------------------------------------------*/
 router.put(
   "/:id",
   verifyAccessToken,
   requireRoles("admin", "barista"),
   async (req, res) => {
     const { id } = req.params;
-    const { name, description = "", category = "", price = null, img = "" } = req.body;
+    const { name, description, category, price, img } = req.body;
 
     try {
       await run(
@@ -77,13 +85,16 @@ router.put(
   }
 );
 
-// ADMIN/BARISTA: Delete item
+/* -----------------------------------------------------
+   4) ADMIN/BARISTA — DELETE ITEM
+------------------------------------------------------*/
 router.delete(
   "/:id",
   verifyAccessToken,
   requireRoles("admin", "barista"),
   async (req, res) => {
     const { id } = req.params;
+
     try {
       await run("DELETE FROM menu WHERE id=?", [id]);
       res.json({ message: "Menu item deleted" });
