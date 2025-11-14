@@ -12,7 +12,6 @@ const app = express();
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 
-
 // SOCKET.IO SETUP
 const io = new Server(server, {
   cors: {
@@ -49,8 +48,9 @@ app.use(
       if (
         origin.startsWith("http://localhost") ||
         origin.startsWith("http://127.0.0.1")
-      )
+      ) {
         return callback(null, true);
+      }
       callback(new Error("Blocked by CORS"));
     },
     credentials: true,
@@ -61,12 +61,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// ROUTES
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/menu", require("./routes/menu"));
+// ROUTES (Fix: include .js extensions)
+app.use("/api/auth", require("./routes/auth.js"));
+app.use("/api/menu", require("./routes/menu.js"));
 
-// ---- FIXED ORDERS ROUTE ----
-const orderRoutes = require("./routes/orders");
+const orderRoutes = require("./routes/orders.js");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
@@ -77,7 +76,11 @@ io.on("connection", (socket) => {
   socket.on("register", (payload) => {
     try {
       if (!payload?.token) return;
-      const decoded = jwt.verify(payload.token, process.env.JWT_ACCESS_SECRET);
+
+      const decoded = jwt.verify(
+        payload.token,
+        process.env.JWT_ACCESS_SECRET
+      );
 
       addSocketForUser(decoded.id, socket.id);
 
@@ -93,14 +96,15 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     for (const [uid, set] of userSockets.entries()) {
-      if (set.has(socket.id)) removeSocketForUser(uid, socket.id);
+      if (set.has(socket.id)) {
+        removeSocketForUser(uid, socket.id);
+      }
     }
   });
 });
 
-// START
+// START SERVER
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log("🔥 Server + Socket.io running on PORT", PORT);
 });
-
