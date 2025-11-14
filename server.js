@@ -5,14 +5,14 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 
-// Load DB (auto-run)
-require("./db");
+// Load SQLite DB initializer
+require("./init_db");
 
 const app = express();
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 
-// 🔥 FIXED SOCKET.IO CORS FOR RENDER
+// SOCKET.IO SETUP
 const io = new Server(server, {
   cors: {
     origin: [
@@ -24,7 +24,7 @@ const io = new Server(server, {
   },
 });
 
-// MAP USER → SOCKET LIST
+// SOCKET USER MAP
 const userSockets = new Map();
 
 function addSocketForUser(userId, socketId) {
@@ -46,14 +46,13 @@ function emitToUser(userId, event, payload) {
   for (const sid of set) io.to(sid).emit(event, payload);
 }
 
-// ------------------------------------
-// 🔥 FIXED GLOBAL CORS FOR FRONTEND + RENDER
+// GLOBAL CORS
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://mochamist.onrender.com"
+      "https://mochamist.onrender.com",
     ],
     credentials: true,
   })
@@ -63,17 +62,15 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// ------------------------------------
-// ROUTES
-app.use("/api/auth", require("./routes/auth.js"));
+// ROUTES — NOW USING SQLITE
+app.use("/api/auth", require("./routes/auth_sqlite.js"));
 app.use("/api/menu", require("./routes/menu.js"));
 
 const orderRoutes = require("./routes/orders.js");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-// ------------------------------------
-// SOCKET.IO LISTENER
+// SOCKET.IO CONNECTION HANDLER
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
@@ -93,6 +90,7 @@ io.on("connection", (socket) => {
       }
 
       socket.emit("registered", { ok: true });
+
     } catch (e) {
       console.log("Invalid token on socket.register");
     }
@@ -100,15 +98,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     for (const [uid, set] of userSockets.entries()) {
-      if (set.has(socket.id)) {
-        removeSocketForUser(uid, socket.id);
-      }
+      if (set.has(socket.id)) removeSocketForUser(uid, socket.id);
     }
   });
 });
 
-// ------------------------------------
-// START SERVER
+// START
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log("🔥 Server + Socket.io running on PORT", PORT)
