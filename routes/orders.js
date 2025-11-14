@@ -2,62 +2,58 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const { pool } = require("../db");
+const db = require("../init_db");
+const { verifyAccessToken } = require("../middleware/auth");
 
-/* -------------------------------------------
-   Socket.IO instance (injected from server)
--------------------------------------------- */
 let io = null;
 function setSocketIO(_io) {
   io = _io;
 }
 
-/* -------------------------------------------
-   Middleware: Verify Access Token
--------------------------------------------- */
-function verifyAccessToken(req, res, next) {
-  const header = req.headers.authorization;
-  if (!header) return res.status(401).json({ message: "Missing token" });
+// Promise helpers for sqlite3
+const all = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
 
-  const token = header.split(" ")[1];
-  try {
-    const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    req.user = user;
-    next();
-  } catch (e) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
-}
+const get = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) return reject(err);
+      resolve(row);
+    });
+  });
 
-/* -------------------------------------------
-   1) CUSTOMER — PLACE ORDER
--------------------------------------------- */
+const run = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) return reject(err);
+      resolve(this); // lastID, changes
+    });
+  });
+
+/* 1) CUSTOMER — PLACE ORDER */
 router.post("/", verifyAccessToken, async (req, res) => {
   const { items, total } = req.body;
-
-  if (!items || !total) {
-    return res.status(400).json({ message: "Missing fields" });
-  }
+  if (!items || total == null) return res.status(400).json({ message: "Missing fields" });
 
   try {
     const userId = req.user.id;
-
-    const [result] = await pool.query(
+    const result = await run(
       "INSERT INTO orders (user_id, items, total, status) VALUES (?, ?, ?, 'Preparing')",
       [userId, JSON.stringify(items), total]
     );
 
-    const orderId = result.insertId;
-
-    const [rows] = await pool.query("SELECT * FROM orders WHERE id=?", [
-      orderId,
-    ]);
-    const order = rows[0];
+    const orderId = result.lastID;
+    const order = await get("SELECT * FROM orders WHERE id = ?", [orderId]);
 
     // Notify baristas
     if (io) io.to("baristas").emit("order:new", { order });
 
-    // Notify THIS customer
+    // Notify THIS customer (room naming convention)
     if (io) io.to(`user_${userId}`).emit("order:placed", { order });
 
     res.json({ message: "Order placed", order });
@@ -67,17 +63,11 @@ router.post("/", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------
-   2) CUSTOMER — GET MY ORDERS
--------------------------------------------- */
+/* 2) CUSTOMER — GET MY ORDERS */
 router.get("/mine", verifyAccessToken, async (req, res) => {
-  const userId = req.user.id;
-
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM orders WHERE user_id=? ORDER BY id DESC",
-      [userId]
-    );
+    const userId = req.user.id;
+    const rows = await all("SELECT * FROM orders WHERE user_id=? ORDER BY id DESC", [userId]);
     res.json(rows);
   } catch (err) {
     console.error("Fetch my orders error:", err);
@@ -85,16 +75,13 @@ router.get("/mine", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------
-   3) BARISTA/ADMIN — VIEW ALL ORDERS
--------------------------------------------- */
+/* 3) BARISTA/ADMIN — VIEW ALL ORDERS */
 router.get("/", verifyAccessToken, async (req, res) => {
-  if (!["barista", "admin"].includes(req.user.role)) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
   try {
-    const [rows] = await pool.query("SELECT * FROM orders ORDER BY id DESC");
+    if (!["barista", "admin"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const rows = await all("SELECT * FROM orders ORDER BY id DESC");
     res.json(rows);
   } catch (err) {
     console.error("Orders fetch error:", err);
@@ -102,9 +89,7 @@ router.get("/", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------
-   4) BARISTA/ADMIN — UPDATE ORDER STATUS
--------------------------------------------- */
+/* 4) BARISTA/ADMIN — UPDATE ORDER STATUS */
 router.patch("/:id/status", verifyAccessToken, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -118,10 +103,8 @@ router.patch("/:id/status", verifyAccessToken, async (req, res) => {
   }
 
   try {
-    await pool.query("UPDATE orders SET status=? WHERE id=?", [status, id]);
-
-    const [rows] = await pool.query("SELECT * FROM orders WHERE id=?", [id]);
-    const order = rows[0];
+    await run("UPDATE orders SET status=? WHERE id=?", [status, id]);
+    const order = await get("SELECT * FROM orders WHERE id=?", [id]);
 
     // Notify customer
     if (io) io.to(`user_${order.user_id}`).emit("order:update", { order });
@@ -136,8 +119,5 @@ router.patch("/:id/status", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------
-   EXPORTS
--------------------------------------------- */
 module.exports = router;
 module.exports.setSocketIO = setSocketIO;
