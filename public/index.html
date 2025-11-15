@@ -90,6 +90,7 @@
           <label>Email</label>
           <input id="email" type="email" required />
         </div>
+
         <div class="input-group">
           <label>Password</label>
           <input id="password" type="password" required />
@@ -151,9 +152,9 @@
           localStorage.setItem("user", JSON.stringify(data.user));
 
           if (data.user.role === "customer") {
-            window.location.href = "customer.html";
+            window.location.href = "./customer.html";     // ⭐ FIXED
           } else {
-            window.location.href = "barista.html";
+            window.location.href = "./barista.html";      // ⭐ FIXED
           }
 
         } catch (err) {
