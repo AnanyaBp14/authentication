@@ -5,78 +5,121 @@ const pool = require("../db");
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
 let io = null;
-function setSocketIO(_io) { io = _io; }
+router.setSocket = (socket) => (io = socket);
 
-/* CUSTOMER — create order (POST /api/orders/create) */
-router.post("/create", verifyAccessToken, requireRoles("customer"), async (req, res) => {
-  const { items, total } = req.body;
-  if (!items || total == null) return res.status(400).json({ message: "Missing fields" });
+/* --------------------------------------------------
+   1. CUSTOMER — PLACE ORDER
+-------------------------------------------------- */
+router.post(
+  "/create",
+  verifyAccessToken,
+  requireRoles("customer"),
+  async (req, res) => {
+    const { items, total } = req.body;
 
-  try {
-    const result = await pool.query(
-      `INSERT INTO orders (user_id, items, total, status) VALUES ($1, $2, $3, 'Preparing') RETURNING *`,
-      [req.user.id, JSON.stringify(items), total]
-    );
-    const order = result.rows[0];
+    if (!items || !total) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
 
-    // notify baristas
-    if (io) io.to("baristas").emit("order:new", { order });
+    try {
+      const result = await pool.query(
+        `INSERT INTO orders (user_id, items, total)
+         VALUES ($1, $2, $3)
+         RETURNING *`,
+        [req.user.id, JSON.stringify(items), total]
+      );
 
-    // notify customer room
-    if (io) io.to(`user_${req.user.id}`).emit("order:placed", { order });
+      const order = result.rows[0];
 
-    res.json({ message: "Order placed", order });
-  } catch (err) {
-    console.error("Order create error:", err);
-    res.status(500).json({ message: "Server error" });
+      // notify barista
+      if (io) io.to("baristas").emit("order:new", order);
+
+      res.json({ message: "Order placed", order });
+    } catch (err) {
+      console.error("❌ Order create error:", err);
+      res.status(500).json({ message: "Order failed" });
+    }
   }
-});
+);
 
-/* CUSTOMER — get my orders (GET /api/orders/mine) */
-router.get("/mine", verifyAccessToken, requireRoles("customer", "barista", "admin"), async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM orders WHERE user_id=$1 ORDER BY id DESC", [req.user.id]);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Fetch my orders error:", err);
-    res.status(500).json({ message: "Server error" });
+/* --------------------------------------------------
+   2. CUSTOMER — MY ORDERS
+-------------------------------------------------- */
+router.get(
+  "/mine",
+  verifyAccessToken,
+  requireRoles("customer"),
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM orders WHERE user_id=$1 ORDER BY id DESC",
+        [req.user.id]
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ My orders error:", err);
+      res.status(500).json({ message: "Failed to load orders" });
+    }
   }
-});
+);
 
-/* BARISTA/ADMIN — get all orders (GET /api/orders) */
-router.get("/", verifyAccessToken, requireRoles("barista", "admin"), async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM orders ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Fetch orders error:", err);
-    res.status(500).json({ message: "Server error" });
+/* --------------------------------------------------
+   3. BARISTA — GET ALL ORDERS
+-------------------------------------------------- */
+router.get(
+  "/",
+  verifyAccessToken,
+  requireRoles("barista", "admin"),
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM orders ORDER BY id DESC"
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ Orders fetch error:", err);
+      res.status(500).json({ message: "Failed to load orders" });
+    }
   }
-});
+);
 
-/* BARISTA — update status (PUT /api/orders/status/:id) */
-router.put("/status/:id", verifyAccessToken, requireRoles("barista", "admin"), async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  if (!["Preparing", "Ready", "Served"].includes(status)) return res.status(400).json({ message: "Invalid status" });
+/* --------------------------------------------------
+   4. BARISTA — UPDATE STATUS
+-------------------------------------------------- */
+router.put(
+  "/status/:id",
+  verifyAccessToken,
+  requireRoles("barista", "admin"),
+  async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
 
-  try {
-    await pool.query("UPDATE orders SET status=$1 WHERE id=$2", [status, id]);
-    const r = await pool.query("SELECT * FROM orders WHERE id=$1", [id]);
-    const order = r.rows[0];
+    if (!["Preparing", "Ready", "Served"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
 
-    // notify the specific customer
-    if (io) io.to(`user_${order.user_id}`).emit("order:update", { order });
+    try {
+      const result = await pool.query(
+        "UPDATE orders SET status=$1 WHERE id=$2 RETURNING *",
+        [status, id]
+      );
 
-    // notify baristas dashboards
-    if (io) io.to("baristas").emit("order:update", { order });
+      const order = result.rows[0];
 
-    res.json({ message: "Status updated", order });
-  } catch (err) {
-    console.error("Update status error:", err);
-    res.status(500).json({ message: "Server error" });
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
+      // notify customer
+      if (io) io.to(`user_${order.user_id}`).emit("order:update", order);
+
+      // notify baristas
+      if (io) io.to("baristas").emit("order:update", order);
+
+      res.json({ message: "Status updated", order });
+    } catch (err) {
+      console.error("❌ Status update error:", err);
+      res.status(500).json({ message: "Status update failed" });
+    }
   }
-});
+);
 
 module.exports = router;
-module.exports.setSocketIO = setSocketIO;
