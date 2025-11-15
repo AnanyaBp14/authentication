@@ -22,7 +22,7 @@ router.post(
 
     try {
       const result = await pool.query(
-        `INSERT INTO orders (user_id, items, total, status, created_at)
+        `INSERT INTO orders (user_id, items, total, status, time)
          VALUES ($1, $2, $3, 'Preparing', NOW())
          RETURNING *`,
         [req.user.id, JSON.stringify(items), total]
@@ -30,12 +30,12 @@ router.post(
 
       const order = result.rows[0];
 
-      // notify all baristas
+      // notify all baristas (socket)
       if (io) io.to("baristas").emit("order:new", order);
 
       res.json({ message: "Order placed", order });
     } catch (err) {
-      console.error("❌ Order create error:", err);
+      console.error("❌ Order create error:", err.message);
       res.status(500).json({ message: "Order failed" });
     }
   }
@@ -56,7 +56,7 @@ router.get(
       );
       res.json(result.rows);
     } catch (err) {
-      console.error("❌ My orders error:", err);
+      console.error("❌ My orders error:", err.message);
       res.status(500).json({ message: "Failed to load orders" });
     }
   }
@@ -76,7 +76,7 @@ router.get(
       );
       res.json(result.rows);
     } catch (err) {
-      console.error("❌ Orders fetch error:", err);
+      console.error("❌ Orders fetch error:", err.message);
       res.status(500).json({ message: "Failed to load orders" });
     }
   }
@@ -114,7 +114,7 @@ router.put(
 
       res.json({ message: "Status updated", order });
     } catch (err) {
-      console.error("❌ Status update error:", err);
+      console.error("❌ Status update error:", err.message);
       res.status(500).json({ message: "Status update failed" });
     }
   }
