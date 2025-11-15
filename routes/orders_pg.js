@@ -1,4 +1,3 @@
-// routes/orders_pg.js
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
@@ -8,7 +7,7 @@ let io = null;
 router.setSocket = (socket) => (io = socket);
 
 /* --------------------------------------------------
-   1. CUSTOMER — PLACE ORDER
+   1. CUSTOMER — CREATE ORDER
 -------------------------------------------------- */
 router.post(
   "/create",
@@ -23,15 +22,15 @@ router.post(
 
     try {
       const result = await pool.query(
-        `INSERT INTO orders (user_id, items, total)
-         VALUES ($1, $2, $3)
+        `INSERT INTO orders (user_id, items, total, status, created_at)
+         VALUES ($1, $2, $3, 'Preparing', NOW())
          RETURNING *`,
         [req.user.id, JSON.stringify(items), total]
       );
 
       const order = result.rows[0];
 
-      // notify barista
+      // notify all baristas
       if (io) io.to("baristas").emit("order:new", order);
 
       res.json({ message: "Order placed", order });
@@ -43,7 +42,7 @@ router.post(
 );
 
 /* --------------------------------------------------
-   2. CUSTOMER — MY ORDERS
+   2. CUSTOMER — VIEW MY ORDERS
 -------------------------------------------------- */
 router.get(
   "/mine",
@@ -105,7 +104,6 @@ router.put(
       );
 
       const order = result.rows[0];
-
       if (!order) return res.status(404).json({ message: "Order not found" });
 
       // notify customer
