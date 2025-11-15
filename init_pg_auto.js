@@ -1,3 +1,4 @@
+// init_pg_auto.js
 const pool = require("./db");
 
 async function initializePostgres() {
@@ -37,39 +38,37 @@ async function initializePostgres() {
       );
     `);
 
+    // default admin (password is bcrypt hash for some sample password)
     await pool.query(`
       INSERT INTO users (email, password, role)
-      VALUES ('admin@mochamist.com',
-              '$2a$10$1hOqP1uH4hHhkf7S8BF7Sey7tOxFyGfF5vBZ9aLF/L/CyCyVJZZZe',
-              'admin')
+      VALUES ($1,$2,$3)
       ON CONFLICT (email) DO NOTHING;
-    `);
+    `, ['admin@mochamist.com', '$2a$10$1hOqP1uH4hHhkf7S8BF7Sey7tOxFyGfF5vBZ9aLF/L/CyCyVJZZZe', 'admin']);
 
+    // default barista (password: barista123 hashed)
     await pool.query(`
       INSERT INTO users (email, password, role)
-      VALUES ('barista@mochamist.com',
-              '$2a$10$fe6ZyjPm7GWGLSu3H3TWuexxsB/JpDTnBkPAV/Q93SkJoefrxDPLu',
-              'barista')
+      VALUES ($1,$2,$3)
       ON CONFLICT (email) DO NOTHING;
-    `);
+    `, ['barista@mochamist.com', '$2a$10$fe6ZyjPm7GWGLSu3H3TWuexxsB/JpDTnBkPAV/Q93SkJoefrxDPLu', 'barista']);
 
+    // default menu items if menu empty
     await pool.query(`
       INSERT INTO menu (name, description, category, price)
       SELECT * FROM (
         VALUES
-          ('Cappuccino','Rich espresso with steamed milk foam','Coffee',140),
-          ('Latte','Smooth & creamy milk + espresso','Coffee',160),
-          ('Cold Brew','Slow chilled brew','Coffee',180),
-          ('Mocha','Chocolate + espresso + steamed milk','Coffee',170),
-          ('Espresso','Strong single shot','Coffee',90)
-      ) AS tmp(name,description,category,price)
-      WHERE NOT EXISTS (SELECT 1 FROM menu LIMIT 1);
+        ('Cappuccino','Rich espresso with steamed milk foam','Coffee',140),
+        ('Latte','Smooth and creamy milk + espresso','Coffee',160),
+        ('Cold Brew','Chilled slowly brewed coffee','Coffee',180),
+        ('Mocha','Chocolate + Espresso + Milk','Coffee',170),
+        ('Espresso','Strong & bold single shot','Coffee',90)
+      ) AS t(name,description,category,price)
+      WHERE NOT EXISTS (SELECT 1 FROM menu);
     `);
 
     console.log("🎉 PostgreSQL Auto-Init Complete!");
-
   } catch (err) {
-    console.error("❌ PG Init Error:", err.message);
+    console.error("❌ PG Init Error:", err.message || err);
   }
 }
 
