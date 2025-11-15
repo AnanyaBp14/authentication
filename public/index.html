@@ -116,17 +116,20 @@
 
   <footer>© 2025 Mocha~Mist — All Rights Reserved</footer>
 
-  <script>
-    // Role Selection
-    document.querySelectorAll(".role-card").forEach(card => {
-      card.addEventListener("click", () => {
-        document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
-        card.classList.add("selected");
-      });
+    <script>
+  // Role Selection (KEEP THIS)
+  document.querySelectorAll(".role-card").forEach(card => {
+    card.addEventListener("click", () => {
+      document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
     });
+  });
   </script>
 
+  <!-- ⭐ REPLACE the old login script with THIS one -->
   <script>
+  document.addEventListener("DOMContentLoaded", () => {
+
     const backendURL = "https://mochamist.onrender.com";
 
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -136,7 +139,7 @@
       const password = document.getElementById("password").value.trim();
       const role = document.querySelector(".role-card.selected").dataset.role;
 
-      console.log("Sending:", { email, password, role });
+      console.log("Submitting: ", email, password, role);
 
       try {
         const res = await fetch(`${backendURL}/api/auth/login`, {
@@ -148,29 +151,29 @@
 
         const data = await res.json();
 
+        console.log("Response:", data);
+
         if (!res.ok) {
-          alert("SERVER SAID: " + data.message);
+          alert(data.message || "Invalid login");
           return;
         }
-
-        alert("Login success!");
 
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("user", JSON.stringify(data.user));
 
         if (data.user.role === "customer") {
-          window.location.href = "customer.html";
+          window.location.href = "customer.html";   <!-- ⭐ no / -->
         } else {
-          window.location.href = "barista.html";
+          window.location.href = "barista.html";    <!-- ⭐ no / -->
         }
 
       } catch (err) {
-        console.error(err);
-        alert("Network error — backend not reachable");
+        console.error("Login error:", err);
+        alert("Network error");
       }
     });
-  </script>
 
+  });
+  </script>
 </body>
 </html>
-
