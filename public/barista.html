@@ -4,63 +4,54 @@
   <meta charset="UTF-8">
   <title>Mocha~Mist — Barista</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: Poppins, sans-serif;
-      background: #fbf7f1;
-      margin: 0;
-    }
+    body { background:#fbf7f1; margin:0; font-family:Poppins; }
 
     header {
-      background: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background:white;
+      padding:1rem 2rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
       position: sticky;
-      top: 0;
-      z-index: 10;
+      top:0;
     }
 
     nav a {
-      margin-left: 1rem;
-      cursor: pointer;
-      font-weight: 500;
-      color: #6b4024;
-      text-decoration: none;
+      margin-left:1rem;
+      cursor:pointer;
+      color:#6b4024;
+      font-weight:500;
     }
 
-    .container { padding: 1.5rem; }
-    h1 { color: #6b4024; }
+    .container { padding:20px; }
+    h1 { color:#6b4024; }
 
     .item-card, .order-card {
-      background: white;
-      padding: 15px;
-      border-radius: 14px;
-      margin-bottom: 15px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      background:white;
+      padding:15px;
+      border-radius:14px;
+      margin-bottom:15px;
+      box-shadow:0 3px 10px rgba(0,0,0,0.08);
     }
 
     button {
-      background: #6b4024;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      background:#6b4024;
+      color:white;
+      padding:8px 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
     }
 
-    button:hover { background: #4a2c18; }
+    button:hover { background:#4a2c18; }
 
-    .delete-btn {
-      background: #ff4d4d;
-    }
-    .delete-btn:hover {
-      background: #cc0000;
-    }
+    .delete-btn { background:#ff4d4d; }
+    .delete-btn:hover { background:#c40000; }
   </style>
 </head>
 
@@ -77,31 +68,27 @@
 
 <div class="container">
 
-  <!-- ORDERS PAGE -->
   <section id="ordersPage">
     <h1>Incoming Orders</h1>
     <div id="ordersList"></div>
   </section>
 
-  <!-- MENU PAGE -->
   <section id="menuPage" style="display:none;">
     <h1>Menu Editor</h1>
 
-    <h3>Add Item</h3>
     <input id="m_name" placeholder="Name"><br><br>
     <input id="m_desc" placeholder="Description"><br><br>
     <input id="m_cat" placeholder="Category"><br><br>
-    <input id="m_price" type="number" placeholder="Price"><br><br>
+    <input id="m_price" placeholder="Price" type="number"><br><br>
     <button onclick="addItem()">Add</button>
 
     <h3 style="margin-top:20px;">Menu List</h3>
     <div id="menuList"></div>
   </section>
-
 </div>
 
 <script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
-<script src="/barista.js?v=15"></script>
+<script src="barista.js?v=20"></script>
 
 </body>
 </html>
