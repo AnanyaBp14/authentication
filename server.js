@@ -45,7 +45,7 @@ const menuRoutes = require("./routes/menu_pg");
 app.use("/api/menu", menuRoutes);
 
 const orderRoutes = require("./routes/orders_pg");
-orderRoutes.setSocketIO(io);
+orderRoutes.setSocket(io);   // ✅ FIXED
 app.use("/api/orders", orderRoutes);
 
 /* SOCKET EVENTS */
