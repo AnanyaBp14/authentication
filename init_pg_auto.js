@@ -1,4 +1,4 @@
-// init_pg_auto.js — FINAL RENDER SAFE VERSION (NO ERRORS)
+// init_pg_auto.js — FINAL RENDER SAFE VERSION
 require("dotenv").config();
 const pool = require("./db");
 
@@ -6,9 +6,7 @@ async function initializePostgres() {
   console.log("🔄 Checking PostgreSQL tables...");
 
   try {
-    /* ------------------------------------------------------
-       USERS TABLE (customer + barista ONLY)
-    -------------------------------------------------------*/
+    /* USERS TABLE */
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -20,9 +18,7 @@ async function initializePostgres() {
       );
     `);
 
-    /* ------------------------------------------------------
-       MENU TABLE
-    -------------------------------------------------------*/
+    /* MENU TABLE */
     await pool.query(`
       CREATE TABLE IF NOT EXISTS menu (
         id SERIAL PRIMARY KEY,
@@ -33,9 +29,7 @@ async function initializePostgres() {
       );
     `);
 
-    /* ------------------------------------------------------
-       ORDERS TABLE
-    -------------------------------------------------------*/
+    /* ORDERS TABLE */
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
@@ -49,9 +43,7 @@ async function initializePostgres() {
 
     console.log("✔ Tables confirmed");
 
-    /* ------------------------------------------------------
-       DEFAULT BARISTA ACCOUNT
-    -------------------------------------------------------*/
+    /* DEFAULT BARISTA */
     await pool.query(`
       INSERT INTO users (email, password, role)
       VALUES (
@@ -64,9 +56,7 @@ async function initializePostgres() {
 
     console.log("✔ default barista ready");
 
-    /* ------------------------------------------------------
-       DEFAULT MENU ITEMS (NO TYPE ERRORS)
-    -------------------------------------------------------*/
+    /* DEFAULT MENU (NO ERRORS) */
     const menuItems = [
       ["Cappuccino", "Rich espresso with steamed milk foam", "Coffee", 140],
       ["Latte", "Smooth and creamy milk + espresso", "Coffee", 160],
@@ -93,4 +83,4 @@ async function initializePostgres() {
   }
 }
 
-initializePostgres();
+module.exports = initializePostgres;   // ⭐ REQUIRED EXPORT
