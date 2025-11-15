@@ -1,22 +1,29 @@
 // routes/menu_pg.js
 const express = require("express");
 const router = express.Router();
-const pool = require("../db");
+const pool = require("../db");  // PostgreSQL pool
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
+/* -----------------------------------------------------
+   1) PUBLIC — Get full menu (no login required)
+------------------------------------------------------*/
 router.get("/", async (req, res) => {
   try {
-    const menu = await pool.query("SELECT * FROM menu ORDER BY id ASC");
-    res.json(menu.rows);
+    const result = await pool.query("SELECT * FROM menu ORDER BY id ASC");
+    res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: "Menu fetch error" });
+    console.error("Menu fetch error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
+/* -----------------------------------------------------
+   ADMIN/BARISTA: Add menu item
+------------------------------------------------------*/
 router.post(
   "/add",
   verifyAccessToken,
-  requireRoles("barista"),
+  requireRoles("admin", "barista"),
   async (req, res) => {
     const { name, description, category, price } = req.body;
 
@@ -26,29 +33,61 @@ router.post(
     try {
       await pool.query(
         `INSERT INTO menu (name, description, category, price)
-         VALUES ($1,$2,$3,$4)
-         ON CONFLICT(name) DO NOTHING`,
+         VALUES ($1, $2, $3, $4)`,
         [name, description, category, price]
       );
 
       res.json({ message: "Menu item added" });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Menu add error" });
+      console.error("Menu add error:", err);
+      res.status(500).json({ message: "Server error" });
     }
   }
 );
 
+/* -----------------------------------------------------
+   ADMIN/BARISTA: Update item
+------------------------------------------------------*/
+router.put(
+  "/:id",
+  verifyAccessToken,
+  requireRoles("admin", "barista"),
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, description, category, price } = req.body;
+
+    try {
+      await pool.query(
+        `UPDATE menu 
+         SET name=$1, description=$2, category=$3, price=$4
+         WHERE id=$5`,
+        [name, description, category, price, id]
+      );
+
+      res.json({ message: "Menu item updated" });
+    } catch (err) {
+      console.error("Menu update error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+/* -----------------------------------------------------
+   ADMIN/BARISTA: Delete item
+------------------------------------------------------*/
 router.delete(
   "/:id",
   verifyAccessToken,
-  requireRoles("barista"),
+  requireRoles("admin", "barista"),
   async (req, res) => {
+    const { id } = req.params;
+
     try {
-      await pool.query("DELETE FROM menu WHERE id=$1", [req.params.id]);
+      await pool.query("DELETE FROM menu WHERE id=$1", [id]);
       res.json({ message: "Menu item deleted" });
     } catch (err) {
-      res.status(500).json({ message: "Delete failed" });
+      console.error("Menu delete error:", err);
+      res.status(500).json({ message: "Server error" });
     }
   }
 );
