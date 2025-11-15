@@ -3,18 +3,19 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
-const router = express.Router();
+require("dotenv").config();
 
+const router = express.Router();
 const COOKIE_NAME = process.env.COOKIE_NAME || "mm_rt";
 
-/* ---------------------------------------------------------
+/* ---------------------------------------------
    TOKEN GENERATORS
---------------------------------------------------------- */
+--------------------------------------------- */
 function signAccessToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_ACCESS_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXP || "15m" }
+    { expiresIn: "15m" }
   );
 }
 
@@ -22,13 +23,13 @@ function signRefreshToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXP || "7d" }
+    { expiresIn: "7d" }
   );
 }
 
-/* ---------------------------------------------------------
-   LOGIN / AUTO REGISTER CUSTOMER
---------------------------------------------------------- */
+/* ---------------------------------------------
+   LOGIN (Customer auto-registers)
+--------------------------------------------- */
 router.post("/login", async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -36,75 +37,64 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
 
   try {
-    // Find user
-    const result = await pool.query("SELECT * FROM users WHERE email=$1", [
-      email,
-    ]);
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email=$1",
+      [email]
+    );
+
     let user = result.rows[0];
 
-    /* ---------------------------------------------------------
-       AUTO-REGISTER CUSTOMER
-    --------------------------------------------------------- */
-    if (!user && role === "customer") {
+    /* CUSTOMER AUTO REGISTER */
+    if (!user) {
+      if (role !== "customer") {
+        return res.status(401).json({ message: "Only customers auto-register" });
+      }
+
       const hashed = await bcrypt.hash(password, 10);
 
-      const insert = await pool.query(
+      const inserted = await pool.query(
         `INSERT INTO users (email, password, role)
          VALUES ($1, $2, 'customer')
-         RETURNING *;`,
+         RETURNING *`,
         [email, hashed]
       );
 
-      user = insert.rows[0];
+      user = inserted.rows[0];
     }
 
-    // If still no user → wrong email
-    if (!user)
-      return res.status(404).json({ message: "No account found for this email" });
+    /* CHECK PASSWORD */
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ message: "Incorrect password" });
 
-    /* ---------------------------------------------------------
-       ROLE MISMATCH
-    --------------------------------------------------------- */
-    if (user.role !== role) {
+    /* ROLE CORRECT? */
+    if (user.role !== role)
       return res.status(403).json({
-        message: `This email belongs to a ${user.role} account.`,
+        message: `Account is ${user.role}. Select correct role.`
       });
-    }
 
-    /* ---------------------------------------------------------
-       PASSWORD CHECK
-    --------------------------------------------------------- */
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword)
-      return res.status(401).json({ message: "Incorrect password" });
-
-    /* ---------------------------------------------------------
-       TOKENS
-    --------------------------------------------------------- */
+    /* TOKENS */
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
-    // Store refresh token in DB
     await pool.query(
       "UPDATE users SET refresh_token=$1 WHERE id=$2",
       [refreshToken, user.id]
     );
 
-    // Render requires SameSite=None + secure
     res.cookie(COOKIE_NAME, refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
+      sameSite: "none"
     });
 
     return res.json({
-      message: "Login successful",
+      message: "Login success",
       accessToken,
       user: {
         id: user.id,
         email: user.email,
-        role: user.role,
-      },
+        role: user.role
+      }
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -112,16 +102,12 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/* ---------------------------------------------------------
-   LOGOUT
---------------------------------------------------------- */
+/* ---------------- LOGOUT ---------------- */
 router.post("/logout", async (req, res) => {
   const token = req.cookies[COOKIE_NAME];
 
   if (token) {
-    await pool.query("UPDATE users SET refresh_token=null WHERE refresh_token=$1", [
-      token,
-    ]);
+    await pool.query("UPDATE users SET refresh_token=NULL WHERE refresh_token=$1", [token]);
   }
 
   res.clearCookie(COOKIE_NAME);
