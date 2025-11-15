@@ -4,22 +4,15 @@ const router = express.Router();
 const pool = require("../db");
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
-/* -----------------------------------------
-   GET MENU (public)
------------------------------------------- */
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM menu ORDER BY id ASC");
-    res.json(result.rows);
+    const menu = await pool.query("SELECT * FROM menu ORDER BY id ASC");
+    res.json(menu.rows);
   } catch (err) {
-    console.error("Menu fetch error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Menu fetch error" });
   }
 });
 
-/* -----------------------------------------
-   ADD MENU ITEM (barista only)
------------------------------------------- */
 router.post(
   "/add",
   verifyAccessToken,
@@ -32,67 +25,30 @@ router.post(
 
     try {
       await pool.query(
-        `
-        INSERT INTO menu (name, description, category, price)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (name) DO NOTHING
-        `,
+        `INSERT INTO menu (name, description, category, price)
+         VALUES ($1,$2,$3,$4)
+         ON CONFLICT(name) DO NOTHING`,
         [name, description, category, price]
       );
 
       res.json({ message: "Menu item added" });
     } catch (err) {
-      console.error("Menu add error:", err);
-      res.status(500).json({ message: "Server error" });
+      console.error(err);
+      res.status(500).json({ message: "Menu add error" });
     }
   }
 );
 
-/* -----------------------------------------
-   UPDATE MENU
------------------------------------------- */
-router.put(
-  "/:id",
-  verifyAccessToken,
-  requireRoles("barista"),
-  async (req, res) => {
-    const { id } = req.params;
-    const { name, description, category, price } = req.body;
-
-    try {
-      await pool.query(
-        `
-        UPDATE menu 
-        SET name=$1, description=$2, category=$3, price=$4
-        WHERE id=$5
-        `,
-        [name, description, category, price, id]
-      );
-
-      res.json({ message: "Menu item updated" });
-    } catch (err) {
-      console.error("Menu update error:", err);
-      res.status(500).json({ message: "Server error" });
-    }
-  }
-);
-
-/* -----------------------------------------
-   DELETE MENU ITEM
------------------------------------------- */
 router.delete(
   "/:id",
   verifyAccessToken,
   requireRoles("barista"),
   async (req, res) => {
-    const { id } = req.params;
-
     try {
-      await pool.query("DELETE FROM menu WHERE id=$1", [id]);
+      await pool.query("DELETE FROM menu WHERE id=$1", [req.params.id]);
       res.json({ message: "Menu item deleted" });
     } catch (err) {
-      console.error("Menu delete error:", err);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Delete failed" });
     }
   }
 );
