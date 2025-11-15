@@ -5,14 +5,14 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-const initializePostgres = require("./init_pg_auto");
 
-initializePostgres(); // Auto-create tables + defaults
+const initializePostgres = require("./init_pg_auto");
+initializePostgres(); // Auto create DB + default rows
 
 const app = express();
 const server = http.createServer(app);
 
-/* ---------------- SOCKET.IO ---------------- */
+/* SOCKET.IO -------------------- */
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -25,7 +25,7 @@ const io = new Server(server, {
   }
 });
 
-/* ---------------- EXPRESS MIDDLEWARE ---------------- */
+/* MIDDLEWARE -------------------- */
 app.use(
   cors({
     origin: [
@@ -39,11 +39,9 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
-
-/* ---------------- STATIC FILES ---------------- */
 app.use(express.static("public"));
 
-/* ---------------- ROUTES ---------------- */
+/* ROUTES ----------------------- */
 app.use("/api/auth", require("./routes/auth_pg"));
 app.use("/api/menu", require("./routes/menu_pg"));
 
@@ -51,9 +49,9 @@ const orderRoutes = require("./routes/orders_pg");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-/* ---------------- SOCKET EVENTS ---------------- */
+/* SOCKET HANDLERS -------------- */
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
+  console.log("Socket:", socket.id);
 
   socket.on("register", ({ token }) => {
     try {
@@ -62,8 +60,8 @@ io.on("connection", (socket) => {
       socket.join(`user_${user.id}`);
       if (user.role === "barista") socket.join("baristas");
 
-      console.log("User registered to socket:", user.id);
-    } catch (err) {
+      console.log("WS registered user:", user.id);
+    } catch {
       console.log("Invalid WS token");
     }
   });
@@ -73,8 +71,6 @@ io.on("connection", (socket) => {
   });
 });
 
-/* ---------------- START SERVER ---------------- */
+/* START SERVER ------------------ */
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () =>
-  console.log(`🔥 Server running on PORT ${PORT}`)
-);
+server.listen(PORT, () => console.log("🔥 Server running on", PORT));
