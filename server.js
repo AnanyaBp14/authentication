@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 
 const initializePostgres = require("./init_pg_auto");
-initializePostgres();
+initializePostgres();  // auto-create DB
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +39,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
+/* Socket User Mapping */
 const userSockets = new Map();
 
 function addSocketForUser(userId, socketId) {
@@ -62,8 +63,8 @@ const orderRoutes = require("./routes/orders_pg.js");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-// TEMP
-app.use("/api/debug", require("./routes/debug_setpw"));
+// ❌ REMOVE THIS (Do not add back)
+// app.use("/api/debug", require("./routes/debug_setpw"));
 
 /* SOCKET.IO */
 io.on("connection", (socket) => {
