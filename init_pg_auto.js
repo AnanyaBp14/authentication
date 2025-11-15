@@ -1,4 +1,4 @@
-// init_pg_auto.js — FINAL RENDER SAFE VERSION
+// init_pg_auto.js
 require("dotenv").config();
 const pool = require("./db");
 
@@ -6,7 +6,6 @@ async function initializePostgres() {
   console.log("🔄 Checking PostgreSQL tables...");
 
   try {
-    /* USERS TABLE */
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -18,7 +17,6 @@ async function initializePostgres() {
       );
     `);
 
-    /* MENU TABLE */
     await pool.query(`
       CREATE TABLE IF NOT EXISTS menu (
         id SERIAL PRIMARY KEY,
@@ -29,7 +27,6 @@ async function initializePostgres() {
       );
     `);
 
-    /* ORDERS TABLE */
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
@@ -41,9 +38,8 @@ async function initializePostgres() {
       );
     `);
 
-    console.log("✔ Tables confirmed");
+    console.log("✔ Tables OK");
 
-    /* DEFAULT BARISTA */
     await pool.query(`
       INSERT INTO users (email, password, role)
       VALUES (
@@ -54,33 +50,11 @@ async function initializePostgres() {
       ON CONFLICT (email) DO NOTHING;
     `);
 
-    console.log("✔ default barista ready");
-
-    /* DEFAULT MENU (NO ERRORS) */
-    const menuItems = [
-      ["Cappuccino", "Rich espresso with steamed milk foam", "Coffee", 140],
-      ["Latte", "Smooth and creamy milk + espresso", "Coffee", 160],
-      ["Cold Brew", "Slow brewed cold coffee", "Coffee", 180],
-      ["Mocha", "Chocolate + Espresso + Milk", "Coffee", 170],
-      ["Espresso", "Strong & bold single shot", "Coffee", 90]
-    ];
-
-    for (const item of menuItems) {
-      await pool.query(
-        `
-        INSERT INTO menu (name, description, category, price)
-        VALUES ($1::varchar, $2::text, $3::varchar, $4::numeric)
-        ON CONFLICT (name) DO NOTHING;
-        `,
-        item
-      );
-    }
-
-    console.log("✔ default menu items added");
+    console.log("✔ Default barista ready");
 
   } catch (err) {
-    console.error("❌ Auto-init error:", err);
+    console.error("❌ Auto-init error:", err.message);
   }
 }
 
-module.exports = initializePostgres;   // ⭐ REQUIRED EXPORT
+module.exports = initializePostgres;
