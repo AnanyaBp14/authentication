@@ -5,8 +5,9 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 
-// Load SQLite DB initializer
-require("./init_db");
+const initializePostgres = require("./init_pg_auto");  // ⭐ auto-db init for Render
+
+initializePostgres(); // ⭐ runs safely without stopping server
 
 const app = express();
 const server = http.createServer(app);
@@ -18,7 +19,7 @@ const io = new Server(server, {
     origin: [
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://mochamist.onrender.com"
+      "https://mochamist.onrender.com",
     ],
     credentials: true,
   },
@@ -62,15 +63,15 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// ROUTES — NOW USING SQLITE
-app.use("/api/auth", require("./routes/auth_sqlite.js"));
-app.use("/api/menu", require("./routes/menu.js"));
+// ROUTES (PostgreSQL Version)
+app.use("/api/auth", require("./routes/auth_pg.js"));
+app.use("/api/menu", require("./routes/menu_pg.js"));
 
-const orderRoutes = require("./routes/orders.js");
+const orderRoutes = require("./routes/orders_pg.js");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-// SOCKET.IO CONNECTION HANDLER
+// SOCKET.IO
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
@@ -85,7 +86,7 @@ io.on("connection", (socket) => {
 
       addSocketForUser(decoded.id, socket.id);
 
-      if (decoded.role === "barista" || decoded.role === "admin") {
+      if (decoded.role === "barista") {
         socket.join("baristas");
       }
 
@@ -103,8 +104,9 @@ io.on("connection", (socket) => {
   });
 });
 
-// START
+// START SERVER
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log("🔥 Server + Socket.io running on PORT", PORT)
 );
+
