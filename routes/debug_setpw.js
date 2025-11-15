@@ -1,13 +1,13 @@
-// routes/debug_setpw.js (TEMPORARY — delete after use)
+// routes/debug_setpw.js
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const pool = require("../db");
 const router = express.Router();
 
-router.post("/fix-barista", async (req, res) => {
+router.get("/fix-barista", async (req, res) => {
   try {
-    const newPlainPassword = "barista123";  // ⭐ desired password
-    const hashed = bcrypt.hashSync(newPlainPassword, 10);
+    const newPlainPassword = "barista123";
+    const hashed = await bcrypt.hash(newPlainPassword, 10);
 
     await pool.query(
       "UPDATE users SET password=$1 WHERE email='barista@mochamist.com'",
@@ -16,7 +16,7 @@ router.post("/fix-barista", async (req, res) => {
 
     res.json({
       message: "Barista password updated successfully",
-      newPassword: newPlainPassword
+      newPassword: newPlainPassword,
     });
   } catch (err) {
     console.error(err);
