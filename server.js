@@ -71,3 +71,7 @@ io.on("connection", (socket) => {
 /* ---------------- START ---------------- */
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🔥 Server running on PORT ${PORT}`));
+const menuRoutes = require("./routes/menu_pg");
+menuRoutes.setSocket(io);
+app.use("/api/menu", menuRoutes);
+
