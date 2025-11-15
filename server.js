@@ -5,13 +5,14 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-
 const initializePostgres = require("./init_pg_auto");
-initializePostgres();  // auto-create DB
+
+initializePostgres(); // Auto-create tables + defaults
 
 const app = express();
 const server = http.createServer(app);
 
+/* ---------------- SOCKET.IO ---------------- */
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -24,6 +25,7 @@ const io = new Server(server, {
   }
 });
 
+/* ---------------- EXPRESS MIDDLEWARE ---------------- */
 app.use(
   cors({
     origin: [
@@ -37,65 +39,42 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+
+/* ---------------- STATIC FILES ---------------- */
 app.use(express.static("public"));
 
-/* Socket User Mapping */
-const userSockets = new Map();
+/* ---------------- ROUTES ---------------- */
+app.use("/api/auth", require("./routes/auth_pg"));
+app.use("/api/menu", require("./routes/menu_pg"));
 
-function addSocketForUser(userId, socketId) {
-  const set = userSockets.get(userId) || new Set();
-  set.add(socketId);
-  userSockets.set(userId, set);
-}
-
-function removeSocketForUser(userId, socketId) {
-  const set = userSockets.get(userId);
-  if (!set) return;
-  set.delete(socketId);
-  if (set.size === 0) userSockets.delete(userId);
-}
-
-/* ROUTES */
-app.use("/api/auth", require("./routes/auth_pg.js"));
-app.use("/api/menu", require("./routes/menu_pg.js"));
-
-const orderRoutes = require("./routes/orders_pg.js");
+const orderRoutes = require("./routes/orders_pg");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-// ❌ REMOVE THIS (Do not add back)
-// app.use("/api/debug", require("./routes/debug_setpw"));
-
-/* SOCKET.IO */
+/* ---------------- SOCKET EVENTS ---------------- */
 io.on("connection", (socket) => {
-  console.log("Socket:", socket.id);
+  console.log("Socket connected:", socket.id);
 
-  socket.on("register", (payload) => {
+  socket.on("register", ({ token }) => {
     try {
-      const decoded = jwt.verify(
-        payload.token,
-        process.env.JWT_ACCESS_SECRET
-      );
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
-      addSocketForUser(decoded.id, socket.id);
+      socket.join(`user_${user.id}`);
+      if (user.role === "barista") socket.join("baristas");
 
-      if (decoded.role === "barista") {
-        socket.join("baristas");
-      }
-    } catch (e) {
+      console.log("User registered to socket:", user.id);
+    } catch (err) {
       console.log("Invalid WS token");
     }
   });
 
   socket.on("disconnect", () => {
-    for (const [uid, set] of userSockets.entries()) {
-      if (set.has(socket.id)) removeSocketForUser(uid, socket.id);
-    }
+    console.log("Socket disconnected:", socket.id);
   });
 });
 
-/* START */
+/* ---------------- START SERVER ---------------- */
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
-  console.log("🔥 Server running on PORT", PORT)
+  console.log(`🔥 Server running on PORT ${PORT}`)
 );
