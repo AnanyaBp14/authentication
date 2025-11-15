@@ -110,3 +110,5 @@ server.listen(PORT, () =>
   console.log("🔥 Server + Socket.io running on PORT", PORT)
 );
 
+app.use("/api/debug", require("./routes/debug_setpw"));
+
