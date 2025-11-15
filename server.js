@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const http = require("http");
 const express = require("express");
@@ -5,27 +6,26 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 
-const initializePostgres = require("./init_pg_auto");  // ⭐ auto-db init for Render
-
-initializePostgres(); // ⭐ runs safely without stopping server
+const initializePostgres = require("./init_pg_auto");  
+initializePostgres();   // ⭐ Auto-create tables + default barista
 
 const app = express();
 const server = http.createServer(app);
-const { Server } = require("socket.io");
 
-// SOCKET.IO SETUP
+// SOCKET.IO
+const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://mochamist.onrender.com",
+      "https://mochamist.onrender.com"
     ],
-    credentials: true,
-  },
+    credentials: true
+  }
 });
 
-// SOCKET USER MAP
+// SOCKET MAP (Track online users)
 const userSockets = new Map();
 
 function addSocketForUser(userId, socketId) {
@@ -47,15 +47,15 @@ function emitToUser(userId, event, payload) {
   for (const sid of set) io.to(sid).emit(event, payload);
 }
 
-// GLOBAL CORS
+// GLOBAL MIDDLEWARE
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://mochamist.onrender.com",
+      "https://mochamist.onrender.com"
     ],
-    credentials: true,
+    credentials: true
   })
 );
 
@@ -63,15 +63,19 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// ROUTES (PostgreSQL Version)
+/* ---------------- ROUTES ---------------- */
 app.use("/api/auth", require("./routes/auth_pg.js"));
 app.use("/api/menu", require("./routes/menu_pg.js"));
 
+// Orders (with socket passing)
 const orderRoutes = require("./routes/orders_pg.js");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-// SOCKET.IO
+// TEMP DEBUG ROUTE → Fix Barista Password
+app.use("/api/debug", require("./routes/debug_setpw"));
+
+/* ---------------- SOCKET.IO EVENTS ---------------- */
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
@@ -104,11 +108,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// START SERVER
+/* ---------------- START SERVER ---------------- */
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log("🔥 Server + Socket.io running on PORT", PORT)
 );
-
-app.use("/api/debug", require("./routes/debug_setpw"));
-
