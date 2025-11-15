@@ -1,67 +1,80 @@
+// server.js
+require("dotenv").config();
+const http = require("http");
 const express = require("express");
-const router = express.Router();
-const pool = require("../db");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const initializePostgres = require("./init_pg_auto");
 
-let io = null;
-router.setSocketIO = (_io) => (io = _io);
+initializePostgres(); // Auto-create tables + defaults
 
-// Verify JWT
-function verifyAccessToken(req, res, next) {
-  try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Missing token" });
+const app = express();
+const server = http.createServer(app);
 
-    req.user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    next();
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
-  }
-}
-
-/* ---------------------------------------------
-   CUSTOMER — PLACE ORDER
----------------------------------------------- */
-router.post("/create", verifyAccessToken, async (req, res) => {
-  const { items, total } = req.body;
-
-  try {
-    const q = await pool.query(
-      `INSERT INTO orders (user_id, items, total, status)
-       VALUES ($1,$2,$3,'Preparing')
-       RETURNING *`,
-      [req.user.id, JSON.stringify(items), total]
-    );
-
-    const order = q.rows[0];
-
-    // notify baristas
-    io.to("baristas").emit("new-order", { order });
-
-    // notify customer
-    io.to(`user_${req.user.id}`).emit("order:placed", { order });
-
-    res.json({ message: "Order placed", order });
-
-  } catch (err) {
-    console.error("Order error:", err);
-    res.status(500).json({ message: "Order error" });
+/* ---------------- SOCKET.IO ---------------- */
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://mochamist.onrender.com"
+    ],
+    credentials: true
   }
 });
 
-/* ---------------------------------------------
-   CUSTOMER — MY ORDERS
----------------------------------------------- */
-router.get("/mine", verifyAccessToken, async (req, res) => {
-  try {
-    const q = await pool.query(
-      "SELECT * FROM orders WHERE user_id=$1 ORDER BY id DESC",
-      [req.user.id]
-    );
-    res.json(q.rows);
-  } catch {
-    res.status(500).json({ message: "Server error" });
-  }
+/* ---------------- EXPRESS MIDDLEWARE ---------------- */
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://mochamist.onrender.com"
+    ],
+    credentials: true
+  })
+);
+
+app.use(express.json());
+app.use(cookieParser());
+
+/* ---------------- STATIC FILES ---------------- */
+app.use(express.static("public"));
+
+/* ---------------- ROUTES ---------------- */
+app.use("/api/auth", require("./routes/auth_pg"));
+app.use("/api/menu", require("./routes/menu_pg"));
+
+const orderRoutes = require("./routes/orders_pg");
+orderRoutes.setSocketIO(io);
+app.use("/api/orders", orderRoutes);
+
+/* ---------------- SOCKET EVENTS ---------------- */
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  socket.on("register", ({ token }) => {
+    try {
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+      socket.join(`user_${user.id}`);
+      if (user.role === "barista") socket.join("baristas");
+
+      console.log("User registered to socket:", user.id);
+    } catch (err) {
+      console.log("Invalid WS token");
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
 });
 
-module.exports = router;
+/* ---------------- START SERVER ---------------- */
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () =>
+  console.log(`🔥 Server running on PORT ${PORT}`)
+);
