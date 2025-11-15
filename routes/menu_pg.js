@@ -4,9 +4,9 @@ const router = express.Router();
 const pool = require("../db");
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
-/* ---------------------
-   GET MENU (PUBLIC)
----------------------- */
+/* -----------------------------------------------------
+   1) PUBLIC — GET FULL MENU
+------------------------------------------------------*/
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM menu ORDER BY id ASC");
@@ -17,9 +17,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* ---------------------
-   ADD MENU (BARISTA)
----------------------- */
+/* -----------------------------------------------------
+   2) BARISTA ONLY — ADD MENU ITEM
+------------------------------------------------------*/
 router.post(
   "/add",
   verifyAccessToken,
@@ -32,7 +32,7 @@ router.post(
 
     try {
       await pool.query(
-        "INSERT INTO menu (name, description, category, price) VALUES ($1,$2,$3,$4)",
+        "INSERT INTO menu (name, description, category, price) VALUES ($1, $2, $3, $4)",
         [name, description, category, price]
       );
 
@@ -44,9 +44,9 @@ router.post(
   }
 );
 
-/* ---------------------
-   UPDATE MENU
----------------------- */
+/* -----------------------------------------------------
+   3) BARISTA ONLY — UPDATE ITEM
+------------------------------------------------------*/
 router.put(
   "/:id",
   verifyAccessToken,
@@ -69,16 +69,18 @@ router.put(
   }
 );
 
-/* ---------------------
-   DELETE MENU
----------------------- */
+/* -----------------------------------------------------
+   4) BARISTA ONLY — DELETE ITEM
+------------------------------------------------------*/
 router.delete(
   "/:id",
   verifyAccessToken,
   requireRoles("barista"),
   async (req, res) => {
+    const { id } = req.params;
+
     try {
-      await pool.query("DELETE FROM menu WHERE id=$1", [req.params.id]);
+      await pool.query("DELETE FROM menu WHERE id=$1", [id]);
       res.json({ message: "Menu item deleted" });
     } catch (err) {
       console.error("Menu delete error:", err);
