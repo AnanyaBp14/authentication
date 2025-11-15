@@ -1,228 +1,142 @@
-const API = "https://mochamist.onrender.com";
-const socket = io(API, { transports: ["websocket"] });
+const backendURL = "https://mochamist.onrender.com";
 
-function $(id) { return document.getElementById(id); }
+let socket = io(backendURL);
 
-// Toast message
-function showToast(msg) {
-  const box = $("toastBox");
-  const el = document.createElement("div");
-  el.className = "toast";
-  el.textContent = msg;
-  box.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-/* ------------------- Tabs ------------------- */
+/* ---------------- SECTION SWITCH ---------------- */
 function showTab(tab) {
-  $("ordersSection").style.display = tab === "orders" ? "block" : "none";
-  $("menuSection").style.display = tab === "menu" ? "block" : "none";
-
-  $("tabOrders").classList.remove("active");
-  $("tabMenu").classList.remove("active");
-
-  if (tab === "orders") $("tabOrders").classList.add("active");
-  else $("tabMenu").classList.add("active");
+  document.getElementById("ordersTab").style.display = tab === "orders" ? "block" : "none";
+  document.getElementById("menuTab").style.display = tab === "menu" ? "block" : "none";
 }
 
-/* ---------------------------------------------------
-   LOAD ALL ORDERS
---------------------------------------------------- */
-async function loadOrders() {
-  const token = localStorage.getItem("accessToken");
+/* ---------------- AUTH ---------------- */
+const token = localStorage.getItem("accessToken");
+const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const r = await fetch(`${API}/api/orders`, {
-    headers: { Authorization: "Bearer " + token }
+if (!token || user.role !== "barista") {
+  alert("Unauthorized");
+  window.location.href = "/";
+}
+
+/* Register socket */
+socket.emit("register", { token });
+
+/* ---------------- MENU ---------------- */
+async function loadMenu() {
+  const res = await fetch(`${backendURL}/api/menu`);
+  const menu = await res.json();
+
+  const box = document.getElementById("menuList");
+  box.innerHTML = "";
+
+  menu.forEach(item => {
+    box.innerHTML += `
+      <div class="menu-row">
+        <div>
+          <b>${item.name}</b> - ₹${item.price}<br>
+          <small>${item.category}</small>
+        </div>
+        <button onclick="deleteMenu(${item.id})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+async function addMenu() {
+  const name = document.getElementById("name").value.trim();
+  const category = document.getElementById("category").value.trim();
+  const price = parseFloat(document.getElementById("price").value);
+  const description = document.getElementById("description").value.trim();
+
+  if (!name || !price) {
+    alert("Name and price are required");
+    return;
+  }
+
+  const res = await fetch(`${backendURL}/api/menu/add`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ name, category, price, description })
   });
 
-  const orders = await r.json();
-  const box = $("ordersGrid");
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message);
+    return;
+  }
+
+  alert("Item added!");
+  loadMenu();
+}
+
+async function deleteMenu(id) {
+  if (!confirm("Delete item?")) return;
+
+  const res = await fetch(`${backendURL}/api/menu/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+  alert(data.message);
+  loadMenu();
+}
+
+/* ---------------- ORDERS ---------------- */
+async function loadOrders() {
+  const res = await fetch(`${backendURL}/api/orders`, {
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  const orders = await res.json();
+
+  const box = document.getElementById("ordersList");
   box.innerHTML = "";
 
   orders.forEach(o => {
     box.innerHTML += `
-      <div class="card">
-        <b>Order #${o.id}</b> <br>
-        <span class="muted">${new Date(o.time).toLocaleString()}</span><br><br>
+      <div class="order-card">
+        <b>Order #${o.id}</b> — ${o.status}<br>
+        <small>${o.time}</small><br><br>
 
-        <div><b>Status:</b> ${o.status}</div>
-
-        <div style="margin-top:12px;">
-          <button onclick="updateStatus(${o.id}, 'Preparing')" class="status-btn">Preparing</button>
-          <button onclick="updateStatus(${o.id}, 'Ready')" class="status-btn">Ready</button>
-          <button onclick="updateStatus(${o.id}, 'Served')" class="status-btn">Served</button>
-        </div>
-
-        <div style="margin-top:12px;">
-          <b>Total:</b> ₹${o.total}
-        </div>
+        <button onclick="updateStatus(${o.id}, 'Preparing')">Preparing</button>
+        <button onclick="updateStatus(${o.id}, 'Ready')">Ready</button>
+        <button onclick="updateStatus(${o.id}, 'Served')">Served</button>
       </div>
     `;
   });
 }
 
-/* ---------------------------------------------------
-   UPDATE ORDER STATUS
---------------------------------------------------- */
 async function updateStatus(id, status) {
-  const token = localStorage.getItem("accessToken");
-
-  const r = await fetch(`${API}/api/orders/${id}/status`, {
+  const res = await fetch(`${backendURL}/api/orders/${id}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + token
+      "Authorization": "Bearer " + token
     },
     body: JSON.stringify({ status })
   });
 
-  const data = await r.json();
-  showToast("Status updated to " + status);
+  const data = await res.json();
+  alert(data.message);
   loadOrders();
 }
 
-/* ---------------------------------------------------
-   LOAD MENU ITEMS
---------------------------------------------------- */
-async function loadMenu() {
-  const r = await fetch(`${API}/api/menu`);
-  const menu = await r.json();
-
-  const box = $("menuGrid");
-  box.innerHTML = "";
-
-  menu.forEach(m => {
-    box.innerHTML += `
-      <div class="card">
-        <b>${m.name}</b> <br>
-        <span class="muted">${m.description || ""}</span><br>
-        <b>₹${m.price}</b>
-
-        <div style="margin-top:12px;">
-          <button onclick="editMenuItem(${m.id}, '${escapeHtml(m.name)}', '${escapeHtml(m.description)}', '${m.category}', ${m.price})">Edit</button>
-          <button class="danger" onclick="deleteMenuItem(${m.id})">Delete</button>
-        </div>
-      </div>
-    `;
-  });
-}
-
-/* ---------------------------------------------------
-   ADD MENU ITEM
---------------------------------------------------- */
-function openAddMenuForm() {
-  const name = prompt("Enter item name:");
-  if (!name) return;
-
-  const desc = prompt("Enter description:");
-  const cat = prompt("Category:");
-  const price = prompt("Price:");
-
-  addMenu(name, desc, cat, price);
-}
-
-async function addMenu(name, description, category, price) {
-  const token = localStorage.getItem("accessToken");
-
-  const r = await fetch(`${API}/api/menu/add`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token
-    },
-    body: JSON.stringify({ name, description, category, price })
-  });
-
-  const data = await r.json();
-  showToast("Menu item added");
-  loadMenu();
-}
-
-/* ---------------------------------------------------
-   EDIT MENU ITEM
---------------------------------------------------- */
-function editMenuItem(id, oldName, oldDesc, oldCategory, oldPrice) {
-  const name = prompt("Name:", oldName);
-  if (!name) return;
-
-  const desc = prompt("Description:", oldDesc);
-  const cat = prompt("Category:", oldCategory);
-  const price = prompt("Price:", oldPrice);
-
-  updateMenu(id, name, desc, cat, price);
-}
-
-async function updateMenu(id, name, description, category, price) {
-  const token = localStorage.getItem("accessToken");
-
-  const r = await fetch(`${API}/api/menu/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token
-    },
-    body: JSON.stringify({ name, description, category, price })
-  });
-
-  showToast("Updated");
-  loadMenu();
-}
-
-/* ---------------------------------------------------
-   DELETE MENU ITEM
---------------------------------------------------- */
-async function deleteMenuItem(id) {
-  const token = localStorage.getItem("accessToken");
-
-  if (!confirm("Delete item?")) return;
-
-  await fetch(`${API}/api/menu/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: "Bearer " + token }
-  });
-
-  showToast("Item deleted");
-  loadMenu();
-}
-
-/* ---------------------------------------------------
-   SOCKET.IO REAL-TIME UPDATES
---------------------------------------------------- */
-socket.on("connect", () => {
-  const token = localStorage.getItem("accessToken");
-  if (token) socket.emit("register", { token });
-});
-
-socket.on("order:new", payload => {
-  showToast("New order received!");
-  loadOrders();
-});
-
-socket.on("order:update", payload => {
-  showToast("Order updated");
-  loadOrders();
-});
-
-/* ---------------------------------------------------
-   AUTH
---------------------------------------------------- */
+/* ---------------- LOGOUT ---------------- */
 function logout() {
   localStorage.clear();
   window.location.href = "/";
 }
 
-/* ---------------------------------------------------
-   UTIL
---------------------------------------------------- */
-function escapeHtml(str) {
-  if (!str) return "";
-  return str.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-}
-
 /* INIT */
-loadOrders();
 loadMenu();
+loadOrders();
+
+/* SOCKET UPDATES */
+socket.on("order:new", () => loadOrders());
+socket.on("order:update", () => loadOrders());
