@@ -67,13 +67,12 @@ app.use(express.static("public"));
 app.use("/api/auth", require("./routes/auth_pg.js"));
 app.use("/api/menu", require("./routes/menu_pg.js"));
 
-// Orders (with socket passing)
 const orderRoutes = require("./routes/orders_pg.js");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-// TEMP DEBUG ROUTE → Fix Barista Password
-app.use("/api/debug", require("./routes/debug_setpw"));
+// ❌ DEBUG ROUTE REMOVED
+// app.use("/api/debug", require("./routes/debug_setpw"));
 
 /* ---------------- SOCKET.IO EVENTS ---------------- */
 io.on("connection", (socket) => {
