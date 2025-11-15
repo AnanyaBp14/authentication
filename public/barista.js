@@ -9,18 +9,16 @@ function $(id) {
   return document.getElementById(id);
 }
 
-/* ------------ PAGE SWITCH ------------ */
 function showPage(p) {
   $("ordersPage").style.display = p === "orders" ? "block" : "none";
   $("menuPage").style.display = p === "menu" ? "block" : "none";
 }
 
-/* ------------ TOAST ------------ */
 function toast(msg) {
   alert(msg);
 }
 
-/* ------------ LOAD MENU ------------ */
+/* ---------- LOAD MENU ---------- */
 async function loadMenu() {
   const r = await fetch(`${API}/api/menu`);
   const menu = await r.json();
@@ -28,78 +26,76 @@ async function loadMenu() {
   const box = $("menuList");
   box.innerHTML = "";
 
-  menu.forEach((m) => {
+  menu.forEach(m => {
     box.innerHTML += `
       <div class="item-card">
-        <b>${m.name}</b>
-        <br>${m.description || ""}
-        <br><b>₹${m.price}</b>
-        <br><br>
+        <b>${m.name}</b><br>
+        ${m.description || ""}<br>
+        <b>₹${m.price}</b><br><br>
         <button class="delete-btn" onclick="deleteItem(${m.id})">Delete</button>
       </div>
     `;
   });
 }
 
-/* ------------ ADD ITEM ------------ */
+/* ---------- ADD MENU ---------- */
 async function addItem() {
   const name = $("m_name").value.trim();
   const description = $("m_desc").value.trim();
   const category = $("m_cat").value.trim();
   const price = $("m_price").value.trim();
 
-  if (!name || !price) return toast("Name & Price required");
+  if (!name || !price) return toast("Missing fields");
 
   const r = await fetch(`${API}/api/menu/add`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
+      Authorization: "Bearer " + token
     },
-    body: JSON.stringify({ name, description, category, price }),
+    body: JSON.stringify({ name, description, category, price })
   });
 
   const data = await r.json();
-
   if (!r.ok) return toast(data.message);
 
   toast("Added!");
   loadMenu();
 }
 
-/* ------------ DELETE ITEM ------------ */
+/* ---------- DELETE MENU ---------- */
 async function deleteItem(id) {
   const r = await fetch(`${API}/api/menu/${id}`, {
     method: "DELETE",
-    headers: { Authorization: "Bearer " + token },
+    headers: {
+      Authorization: "Bearer " + token
+    }
   });
 
   const data = await r.json();
-
   if (!r.ok) return toast(data.message);
 
   toast("Deleted!");
   loadMenu();
 }
 
-/* ------------ LOAD ORDERS ------------ */
+/* ---------- LOAD ORDERS (FIXED) ---------- */
 async function loadOrders() {
-  const r = await fetch(`${API}/api/orders`, {
-    headers: { Authorization: "Bearer " + token },
+  const r = await fetch(`${API}/api/orders/all`, {
+    headers: {
+      Authorization: "Bearer " + token
+    }
   });
 
   const orders = await r.json();
   const box = $("ordersList");
-
   box.innerHTML = "";
 
-  orders.forEach((o) => {
+  orders.forEach(o => {
     box.innerHTML += `
       <div class="order-card">
-        <b>Order #${o.id}</b> — ${o.status}
-        <br>
-        <small>${new Date(o.time).toLocaleString()}</small>
-        <br><br>
+        <b>Order #${o.id}</b> — ${o.status}<br>
+        <small>${new Date(o.time).toLocaleString()}</small><br><br>
         <button onclick="updateStatus(${o.id}, 'Ready')">Ready</button>
         <button onclick="updateStatus(${o.id}, 'Served')">Served</button>
       </div>
@@ -107,15 +103,15 @@ async function loadOrders() {
   });
 }
 
-/* ------------ UPDATE STATUS ------------ */
+/* ---------- UPDATE ORDER STATUS ---------- */
 async function updateStatus(id, status) {
   const r = await fetch(`${API}/api/orders/status/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
+      Authorization: "Bearer " + token
     },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status })
   });
 
   const data = await r.json();
@@ -125,11 +121,11 @@ async function updateStatus(id, status) {
   loadOrders();
 }
 
-/* ------------ SOCKET EVENTS ------------ */
-socket.on("menu:update", () => {
-  loadMenu();
-});
+/* ---------- SOCKETS ---------- */
+socket.on("order:update", () => loadOrders());
+socket.on("order:new", () => loadOrders());
+socket.on("menu:update", () => loadMenu());
 
-/* ------------ INIT ------------ */
+/* ---------- INIT ---------- */
 loadMenu();
 loadOrders();
