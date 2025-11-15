@@ -8,180 +8,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
+    body { background:#fbf7f1; margin:0; font-family: Poppins,sans-serif; }
+    header { background:white; padding:1rem 2rem; display:flex; justify-content:space-between;
+             align-items:center; position:sticky; top:0; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
 
-    body { 
-      font-family: Poppins, sans-serif; 
-      background:#fbf7f1; 
-      margin:0; 
-    }
+    .nav-right a { margin-left:1rem; cursor:pointer; color:#6b4024; text-decoration:none; font-weight:500; }
 
-    header {
-      background:white; 
-      padding:1rem 2rem; 
-      display:flex;
-      justify-content:space-between; 
-      align-items:center;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+    .container { padding:1.5rem; }
+    h1 { color:#6b4024; }
 
-    .nav-right a {
-      margin-left:1rem; 
-      text-decoration:none; 
-      color:#6b4024;
-      font-weight:500;
-      cursor:pointer;
-    }
+    #menuGrid { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:20px; margin-top:20px; }
 
-    .container {
-      padding: 1.5rem;
-    }
+    .menu-card { background:white; padding:15px; border-radius:14px; box-shadow:0 3px 10px rgba(0,0,0,0.08); }
+    .menu-title { font-size:18px; font-weight:600; color:#6b4024; }
+    .menu-price { font-weight:600; color:#6b4024; }
 
-    h1 {
-      color: #6b4024;
-    }
+    .add-btn { background:#6b4024; color:white; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; }
 
-    /* ---------------- MENU CARD (No Images) ---------------- */
-    #menuGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
+    .cart-item { background:white; padding:12px; margin-bottom:10px; border-radius:10px;
+                 box-shadow:0 2px 6px rgba(0,0,0,0.08); display:flex; justify-content:space-between; }
 
-    .menu-card {
-      background: white;
-      padding: 15px;
-      border-radius: 14px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-      transition: 0.2s;
-    }
+    button.place-button { background:#6b4024; color:white; padding:10px 16px; border:none; border-radius:10px; cursor:pointer; }
 
-    .menu-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .menu-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #6b4024;
-    }
-
-    .menu-desc {
-      font-size: 14px;
-      color: #7a6c63;
-      margin: 8px 0;
-    }
-
-    .menu-price {
-      font-weight: 600;
-      margin-top: 5px;
-      color: #6b4024;
-    }
-
-    .add-btn {
-      background: #6b4024;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-top: 10px;
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .add-btn:hover {
-      background: #53311b;
-    }
-
-    /* ---------------- CART SECTION ---------------- */
-
-    #cartSection {
-      padding: 20px;
-    }
-
-    .cart-item {
-      background: white;
-      padding: 15px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .cart-item .name {
-      font-weight: 600;
-      color: #6b4024;
-    }
-
-    .cart-item .qty {
-      font-size: 14px;
-      color: #7a6c63;
-    }
-
-    .cart-item .remove {
-      background: #ff4d4d;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .cart-item .remove:hover {
-      background: #d93636;
-    }
-
-    #cartSection button {
-      background: #6b4024;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-      font-weight: 500;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-
-    #cartSection button:hover {
-      background: #58321c;
-    }
-
-    /* ---------------- TOAST ---------------- */
-
-    #toastBox {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-    }
-
-    .toast {
-      background: #fff;
-      padding: 12px 18px;
-      margin-top: 10px;
-      border-radius: 10px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-left: 4px solid #c49a6c;
-      animation: slideIn 0.3s ease-out;
-      font-family: 'Poppins';
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(40px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
+    #toastBox { position:fixed; top:20px; right:20px; z-index:9999; }
+    .toast { background:white; padding:12px 18px; margin-top:10px; border-radius:10px; border-left:4px solid #c49a6c;
+             box-shadow:0 3px 10px rgba(0,0,0,0.15); font-family:Poppins; }
   </style>
 </head>
 
@@ -189,6 +40,7 @@
 
 <header>
   <h2>☕ Mocha~Mist</h2>
+
   <div class="nav-right">
     <a onclick="showSection('menu')">Menu</a>
     <a onclick="showSection('cart')">Cart <span id="cartCount">0</span></a>
@@ -207,7 +59,7 @@
   <section id="cartSection" style="display:none;">
     <h1>Your Cart</h1>
     <div id="cartItems"></div>
-    <button onclick="placeOrder()">Place Order</button>
+    <button class="place-button" onclick="placeOrder()">Place Order</button>
   </section>
 
   <section id="ordersSection" style="display:none;">
@@ -217,8 +69,11 @@
 
 </div>
 
-<script src="http://localhost:5000/socket.io/socket.io.js"></script>
-<script src="/customer.js"></script>
+<!-- Render socket -->
+<script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
+
+<!-- Load customer.js with no cache -->
+<script src="/customer.js?v=999999"></script>
 
 <div id="toastBox"></div>
 
