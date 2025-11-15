@@ -1,118 +1,66 @@
+// routes/orders_pg.js
 const express = require("express");
-const pool = require("../db");
-const { verifyAccessToken } = require("../middleware/auth");
-
 const router = express.Router();
+const pool = require("../db");
+const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
 let io = null;
-function setSocketIO(_io) {
-  io = _io;
-}
+router.setSocketIO = (socketInstance) => (io = socketInstance);
 
-/* ---------------------------------------------------------
-   CUSTOMER — PLACE ORDER
---------------------------------------------------------- */
-router.post("/", verifyAccessToken, async (req, res) => {
-  const { items, total } = req.body;
+/* CUSTOMER — place order */
+router.post(
+  "/create",
+  verifyAccessToken,
+  requireRoles("customer"),
+  async (req, res) => {
+    const { items, total } = req.body;
 
-  if (!items || !total)
-    return res.status(400).json({ message: "Missing fields" });
+    try {
+      const result = await pool.query(
+        `INSERT INTO orders (user_id, items, total)
+         VALUES ($1,$2,$3)
+         RETURNING *`,
+        [req.user.id, JSON.stringify(items), total]
+      );
 
-  try {
-    const userId = req.user.id;
+      io.to("baristas").emit("new-order", result.rows[0]);
 
-    const result = await pool.query(
-      `INSERT INTO orders (user_id, items, total, status)
-       VALUES ($1, $2, $3, 'Preparing')
-       RETURNING *`,
-      [userId, JSON.stringify(items), total]
-    );
-
-    const order = result.rows[0];
-
-    // Notify baristas
-    if (io) io.to("baristas").emit("order:new", { order });
-
-    // Notify customer
-    if (io) io.to(`user_${userId}`).emit("order:placed", { order });
-
-    res.json({ message: "Order placed", order });
-  } catch (err) {
-    console.error("Order place error:", err);
-    res.status(500).json({ message: "Server error" });
+      res.json({ message: "Order placed", order: result.rows[0] });
+    } catch (err) {
+      res.status(500).json({ message: "Order error" });
+    }
   }
-});
+);
 
-/* ---------------------------------------------------------
-   CUSTOMER — MY ORDERS
---------------------------------------------------------- */
-router.get("/mine", verifyAccessToken, async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT * FROM orders WHERE user_id=$1 ORDER BY id DESC",
-      [req.user.id]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Fetch my orders error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* ---------------------------------------------------------
-   BARISTA — VIEW ALL ORDERS
---------------------------------------------------------- */
-router.get("/", verifyAccessToken, async (req, res) => {
-  if (req.user.role !== "barista")
-    return res.status(403).json({ message: "Forbidden" });
-
-  try {
+/* BARISTA — get orders */
+router.get(
+  "/all",
+  verifyAccessToken,
+  requireRoles("barista"),
+  async (_, res) => {
     const result = await pool.query("SELECT * FROM orders ORDER BY id DESC");
     res.json(result.rows);
-  } catch (err) {
-    console.error("Orders fetch error:", err);
-    res.status(500).json({ message: "Server error" });
   }
-});
+);
 
-/* ---------------------------------------------------------
-   BARISTA — UPDATE ORDER STATUS
---------------------------------------------------------- */
-router.patch("/:id/status", verifyAccessToken, async (req, res) => {
-  if (req.user.role !== "barista")
-    return res.status(403).json({ message: "Forbidden" });
+/* BARISTA — update status */
+router.put(
+  "/status/:id",
+  verifyAccessToken,
+  requireRoles("barista"),
+  async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
 
-  const { id } = req.params;
-  const { status } = req.body;
-
-  if (!["Preparing", "Ready", "Served"].includes(status))
-    return res.status(400).json({ message: "Invalid status" });
-
-  try {
     await pool.query(
       "UPDATE orders SET status=$1 WHERE id=$2",
       [status, id]
     );
 
-    const result = await pool.query(
-      "SELECT * FROM orders WHERE id=$1",
-      [id]
-    );
+    io.emit("order-status", { id, status });
 
-    const order = result.rows[0];
-
-    // Notify customer
-    if (io) io.to(`user_${order.user_id}`).emit("order:update", { order });
-
-    // Notify baristas dashboard
-    if (io) io.to("baristas").emit("order:update", { order });
-
-    res.json({ message: "Status updated", order });
-  } catch (err) {
-    console.error("Status update error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.json({ message: "Order updated" });
   }
-});
+);
 
 module.exports = router;
-module.exports.setSocketIO = setSocketIO;
