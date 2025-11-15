@@ -3,58 +3,58 @@ const router = express.Router();
 const pool = require("../db");
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
-let io = null;
-router.setSocketIO = (socket) => (io = socket);
-
-/* -----------------------------------------
-   PUBLIC — Get full menu
------------------------------------------- */
+/* ---------------------------------------------------------
+   PUBLIC — Get Menu
+--------------------------------------------------------- */
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM menu ORDER BY id ASC");
     res.json(result.rows);
   } catch (err) {
-    console.error("Menu fetch error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Menu fetch error:", err);
+    res.status(500).json({ message: "Menu fetch failed" });
   }
 });
 
-/* -----------------------------------------
-   BARISTA — Add menu item
------------------------------------------- */
+/* ---------------------------------------------------------
+   BARISTA / ADMIN — Add menu item
+--------------------------------------------------------- */
 router.post(
   "/add",
   verifyAccessToken,
   requireRoles("barista", "admin"),
   async (req, res) => {
-    const { name, description, category, price, img } = req.body;
+    const { name, description, category, price } = req.body;
 
-    if (!name || !price) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
+    if (!name || !price)
+      return res.status(400).json({ message: "Name & price required" });
 
     try {
       const result = await pool.query(
-        `INSERT INTO menu (name, description, category, price, img)
-         VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-        [name, description || "", category || "", price, img || ""]
+        `INSERT INTO menu (name, description, category, price)
+         VALUES ($1, $2, $3, $4)
+         RETURNING *`,
+        [name, description, category, price]
       );
 
-      const item = result.rows[0];
+      console.log("✔ New menu item added:", result.rows[0]);
 
-      if (io) io.emit("menu:update", { type: "add", item });
+      // Tell all customers/bartistas menu updated
+      if (router.io) {
+        router.io.emit("menu:update", result.rows[0]);
+      }
 
-      res.json({ message: "Item added", item });
+      res.json({ message: "Item added", item: result.rows[0] });
     } catch (err) {
-      console.error("Menu add error:", err);
-      res.status(500).json({ message: "Server error" });
+      console.error("❌ Menu add error:", err);
+      res.status(500).json({ message: "Menu add failed" });
     }
   }
 );
 
-/* -----------------------------------------
-   BARISTA — Delete item
------------------------------------------- */
+/* ---------------------------------------------------------
+   DELETE MENU ITEM
+--------------------------------------------------------- */
 router.delete(
   "/:id",
   verifyAccessToken,
@@ -63,16 +63,17 @@ router.delete(
     const { id } = req.params;
 
     try {
-      await pool.query("DELETE FROM menu WHERE id=$1", [id]);
+      const result = await pool.query("DELETE FROM menu WHERE id=$1", [id]);
 
-      if (io) io.emit("menu:update", { type: "delete", id });
+      if (router.io) router.io.emit("menu:update", { id });
 
-      res.json({ message: "Item deleted" });
+      res.json({ message: "Deleted" });
     } catch (err) {
-      console.error("Menu delete error:", err);
-      res.status(500).json({ message: "Server error" });
+      console.error("❌ Menu delete error:", err);
+      res.status(500).json({ message: "Delete failed" });
     }
   }
 );
 
+router.setSocket = (io) => (router.io = io);
 module.exports = router;
