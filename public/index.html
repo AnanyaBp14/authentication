@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mocha~Mist ☁️ — Welcome</title>
+  <title>Mocha~Mist ☁️ — Login</title>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
@@ -81,7 +81,7 @@
 
   <section class="hero" id="home">
     <h1>Welcome to Mocha~Mist ☁️</h1>
-    <p>Cloud-powered coffee ordering — connecting Customers, Baristas, and Admins.</p>
+    <p>Cloud-powered coffee ordering — connecting Customers & Baristas.</p>
     <button onclick="location.href='#login'">Login Now</button>
   </section>
 
@@ -104,9 +104,11 @@
 
         <div class="role-container">
           <p>Select Role</p>
+
           <div class="role-card selected" data-role="customer">Customer</div>
           <div class="role-card" data-role="barista">Barista</div>
-          <div class="role-card" data-role="admin">Admin</div>
+          
+          <!-- Admin removed -->
         </div>
 
         <button type="submit" class="login-btn">Sign In</button>
@@ -153,9 +155,10 @@
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      if (data.user.role === "customer") window.location.href = "/customer.html";
-      else if (data.user.role === "barista") window.location.href = "/barista.html";
-      else window.location.href = "/admin.html";
+      if (data.user.role === "customer") 
+        window.location.href = "/customer.html";
+      else 
+        window.location.href = "/barista.html";
 
     } catch (err) {
       console.error(err);
