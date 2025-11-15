@@ -1,33 +1,15 @@
-// customer.js — final
 const API = "https://mochamist.onrender.com";
 let menu = [];
 let cart = [];
 
 const socket = io(API, {
   transports: ["websocket", "polling"],
-  withCredentials: true,
+  withCredentials: true
 });
 
-function $(id) {
-  return document.getElementById(id);
-}
+function $(x) { return document.getElementById(x); }
 
-function showSection(s) {
-  $("menuSection").style.display = s === "menu" ? "block" : "none";
-  $("cartSection").style.display = s === "cart" ? "block" : "none";
-  $("ordersSection").style.display = s === "orders" ? "block" : "none";
-}
-
-function showToast(msg) {
-  const box = $("toastBox");
-  const el = document.createElement("div");
-  el.className = "toast";
-  el.textContent = msg;
-  box.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-/* ---------------- MENU ------------------- */
+/* LOAD MENU */
 async function loadMenu() {
   try {
     const r = await fetch(`${API}/api/menu`);
@@ -36,132 +18,100 @@ async function loadMenu() {
     const box = $("menuGrid");
     box.innerHTML = "";
 
-    menu.forEach((m) => {
+    menu.forEach(m =>
       box.innerHTML += `
         <div class="menu-card">
           <div class="menu-title">${m.name}</div>
           <div class="menu-desc">${m.description || ""}</div>
-          <div class="menu-price">₹${Number(m.price).toFixed(2)}</div>
-          <button class="add-btn" onclick="addToCart(${m.id})">Add</button>
-        </div>`;
-    });
-  } catch (err) {
-    console.error(err);
-    showToast("Menu load failed");
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <div class="menu-price">₹${m.price}</div>
+            <button class="add-btn" onclick="addToCart(${m.id})">Add</button>
+          </div>
+        </div>
+      `
+    );
+  } catch {
+    showToast("Failed to load menu");
   }
 }
 
-/* ---------------- CART ------------------- */
+/* CART */
 function addToCart(id) {
-  const item = menu.find((m) => m.id == id);
-  if (!item) return;
+  const item = menu.find(x => x.id == id);
+  const exist = cart.find(x => x.id == id);
 
-  const existing = cart.find((c) => c.id == id);
+  if (exist) exist.qty++;
+  else cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
 
-  if (existing) existing.qty++;
-  else cart.push({ id: item.id, name: item.name, price: Number(item.price), qty: 1 });
-
-  updateCartUI();
-  showToast("Added to cart");
+  updateCart();
 }
 
-function updateCartUI() {
-  $("cartCount").textContent = cart.reduce((a, b) => a + b.qty, 0);
-
+function updateCart() {
+  $("cartCount").innerText = cart.reduce((a,b)=>a+b.qty,0);
   const box = $("cartItems");
   box.innerHTML = "";
 
-  if (!cart.length) return (box.innerHTML = "Cart empty");
-
-  cart.forEach((c, i) => {
+  cart.forEach((c,i) =>
     box.innerHTML += `
       <div class="cart-item">
-        <div>
-          <div class="name">${c.name}</div>
-          <div class="qty">Qty: ${c.qty}</div>
-        </div>
-        <button class="remove" onclick="removeItem(${i})">Remove</button>
-      </div>`;
-  });
+        <div>${c.name} (x${c.qty})</div>
+        <button onclick="removeItem(${i})">Remove</button>
+      </div>`
+  );
 }
 
-function removeItem(i) {
-  cart.splice(i, 1);
-  updateCartUI();
-}
+function removeItem(i) { cart.splice(i,1); updateCart(); }
 
-/* ---------------- PLACE ORDER ------------------- */
+/* PLACE ORDER — FIXED URL */
 async function placeOrder() {
-  if (!cart.length) return showToast("Cart empty");
-
-  const subtotal = cart.reduce((a, b) => a + b.price * b.qty, 0);
-  const total = +(subtotal + subtotal * 0.08).toFixed(2);
-
   const token = localStorage.getItem("accessToken");
-  if (!token) return showToast("Please login");
+  if (!token) return showToast("Login first");
 
-  try {
-    const r = await fetch(`${API}/api/orders/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ items: cart, total }),
-    });
+  const total = cart.reduce((a,b)=>a + b.qty*b.price,0);
 
-    const data = await r.json();
+  const r = await fetch(`${API}/api/orders`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ items: cart, total })
+  });
 
-    if (!r.ok) {
-      console.error(data);
-      return showToast("Order failed");
-    }
+  const data = await r.json();
 
-    showToast("Order Placed!");
-    cart = [];
-    updateCartUI();
-    loadOrders();
-  } catch (err) {
-    showToast("Server error");
-  }
+  if (!r.ok) return showToast("Order failed");
+
+  showToast("Order placed!");
+  cart = [];
+  updateCart();
+  loadOrders();
 }
 
-/* ---------------- ORDERS ------------------- */
+/* LOAD ORDERS */
 async function loadOrders() {
   const token = localStorage.getItem("accessToken");
   if (!token) return;
 
   const r = await fetch(`${API}/api/orders/mine`, {
-    headers: { Authorization: "Bearer " + token },
+    headers: { "Authorization": "Bearer " + token }
   });
 
   const orders = await r.json();
-  const box = $("ordersList");
 
-  box.innerHTML = "";
-
-  if (!orders.length) return (box.innerHTML = "No orders yet");
-
-  orders.forEach((o) => {
-    box.innerHTML += `
-      <div class="order-card">
-        <b>Order #${o.id}</b> - ${o.status}
-        <div>Total: ₹${o.total}</div>
-      </div>`;
-  });
+  $("ordersList").innerHTML = orders.map(o =>
+    `<div>Order #${o.id} — ${o.status} — ₹${o.total}</div>`
+  ).join("");
 }
 
-/* ---------------- SOCKET EVENTS ------------------- */
-socket.on("connect", () => {
-  const token = localStorage.getItem("accessToken");
-  if (token) socket.emit("register", { token });
-});
-
+/* SOCKET */
 socket.on("order:update", () => loadOrders());
 
-socket.on("order:placed", () => loadOrders());
+function showToast(msg) {
+  alert(msg);
+}
 
 /* INIT */
 loadMenu();
 loadOrders();
-updateCartUI();
+updateCart();
