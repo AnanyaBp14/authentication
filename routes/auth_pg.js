@@ -34,15 +34,12 @@ function signRefreshToken(user) {
 router.post("/login", async (req, res) => {
   const { email, password, role } = req.body;
 
-  if (!email || !password || !role)
+  if (!email || !password || !role) {
     return res.status(400).json({ message: "Missing fields" });
+  }
 
   try {
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email=$1",
-      [email]
-    );
-
+    const result = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
     let user = result.rows[0];
 
     /* ---------------------------------------------
@@ -59,15 +56,14 @@ router.post("/login", async (req, res) => {
       );
 
       user = insert.rows[0];
+      console.log("Auto-registered new customer:", user.email);
     }
 
     /* ---------------------------------------------
-       CASE 2 — USER NOT FOUND (barista)
+       CASE 2 — USER NOT FOUND (barista/admin)
     --------------------------------------------- */
     if (!user) {
-      return res.status(404).json({
-        message: "Account does not exist"
-      });
+      return res.status(404).json({ message: "Account does not exist" });
     }
 
     /* ---------------------------------------------
@@ -93,30 +89,36 @@ router.post("/login", async (req, res) => {
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
-    await pool.query(
-      "UPDATE users SET refresh_token=$1 WHERE id=$2",
-      [refreshToken, user.id]
-    );
+    try {
+      await pool.query("UPDATE users SET refresh_token=$1 WHERE id=$2", [refreshToken, user.id]);
+    } catch (e) {
+      console.error("Failed to save refresh token to DB:", e);
+      // Not fatal for login — continue
+    }
 
-    res.cookie(COOKIE_NAME, refreshToken, {
+    // Cookie options: secure in production only
+    const cookieOptions = {
       httpOnly: true,
-      secure: true,
       sameSite: "none"
-    });
+    };
+    if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
 
-    res.json({
+    res.cookie(COOKIE_NAME, refreshToken, cookieOptions);
+
+    // Return tokens and user object — frontend should save accessToken (localStorage)
+    return res.json({
       message: "Login success",
       accessToken,
+      refreshToken, // useful for debugging / refresh flow
       user: {
         id: user.id,
         email: user.email,
         role: user.role
       }
     });
-
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -127,10 +129,11 @@ router.post("/logout", async (req, res) => {
   const token = req.cookies[COOKIE_NAME];
 
   if (token) {
-    await pool.query(
-      "UPDATE users SET refresh_token=NULL WHERE refresh_token=$1",
-      [token]
-    );
+    try {
+      await pool.query("UPDATE users SET refresh_token=NULL WHERE refresh_token=$1", [token]);
+    } catch (e) {
+      console.error("Failed to clear refresh token:", e);
+    }
   }
 
   res.clearCookie(COOKIE_NAME);
