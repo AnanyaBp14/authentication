@@ -1,80 +1,111 @@
-// server.js
-require("dotenv").config();
-const http = require("http");
+// routes/orders_pg.js
 const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
+const router = express.Router();
 const jwt = require("jsonwebtoken");
-const initializePostgres = require("./init_pg_auto");
+const pool = require("../db");
 
-initializePostgres(); // Auto-create tables + defaults
+let io = null;
+router.setSocketIO = (_io) => (io = _io);
 
-const app = express();
-const server = http.createServer(app);
+/* ---------------- VERIFY ACCESS TOKEN ---------------- */
+function verifyAccessToken(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header) return res.status(401).json({ message: "Missing token" });
 
-/* ---------------- SOCKET.IO ---------------- */
-const { Server } = require("socket.io");
-const io = new Server(server, {
-  cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "https://mochamist.onrender.com"
-    ],
-    credentials: true
+  const token = header.split(" ")[1];
+  try {
+    req.user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+/* ---------------- CUSTOMER: PLACE ORDER ---------------- */
+router.post("/", verifyAccessToken, async (req, res) => {
+  const { items, total } = req.body;
+  const userId = req.user.id;
+
+  if (!items || !total)
+    return res.status(400).json({ message: "Missing fields" });
+
+  try {
+    const insert = await pool.query(
+      `INSERT INTO orders (user_id, items, total, status)
+       VALUES ($1, $2, $3, 'Preparing')
+       RETURNING *`,
+      [userId, JSON.stringify(items), total]
+    );
+
+    const order = insert.rows[0];
+
+    // Notify baristas
+    if (io) io.to("baristas").emit("order:new", { order });
+
+    // Notify this customer
+    if (io) io.to(`user_${userId}`).emit("order:placed", { order });
+
+    return res.json({ message: "Order placed", order });
+  } catch (err) {
+    console.error("PG Order Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ---------------- EXPRESS MIDDLEWARE ---------------- */
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "https://mochamist.onrender.com"
-    ],
-    credentials: true
-  })
-);
-
-app.use(express.json());
-app.use(cookieParser());
-
-/* ---------------- STATIC FILES ---------------- */
-app.use(express.static("public"));
-
-/* ---------------- ROUTES ---------------- */
-app.use("/api/auth", require("./routes/auth_pg"));
-app.use("/api/menu", require("./routes/menu_pg"));
-
-const orderRoutes = require("./routes/orders_pg");
-orderRoutes.setSocketIO(io);
-app.use("/api/orders", orderRoutes);
-
-/* ---------------- SOCKET EVENTS ---------------- */
-io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
-
-  socket.on("register", ({ token }) => {
-    try {
-      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-
-      socket.join(`user_${user.id}`);
-      if (user.role === "barista") socket.join("baristas");
-
-      console.log("User registered to socket:", user.id);
-    } catch (err) {
-      console.log("Invalid WS token");
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
-  });
+/* ---------------- CUSTOMER: MY ORDERS ---------------- */
+router.get("/mine", verifyAccessToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM orders WHERE user_id=$1 ORDER BY id DESC`,
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("PG Mine Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-/* ---------------- START SERVER ---------------- */
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () =>
-  console.log(`🔥 Server running on PORT ${PORT}`)
-);
+/* ---------------- BARISTA: ALL ORDERS ---------------- */
+router.get("/", verifyAccessToken, async (req, res) => {
+  if (!["barista", "admin"].includes(req.user.role))
+    return res.status(403).json({ message: "Forbidden" });
+
+  try {
+    const result = await pool.query(`SELECT * FROM orders ORDER BY id DESC`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("PG Fetch Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ---------------- BARISTA: UPDATE STATUS ---------------- */
+router.patch("/:id/status", verifyAccessToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!["Preparing", "Ready", "Served"].includes(status))
+    return res.status(400).json({ message: "Invalid status" });
+
+  if (!["barista", "admin"].includes(req.user.role))
+    return res.status(403).json({ message: "Forbidden" });
+
+  try {
+    await pool.query(`UPDATE orders SET status=$1 WHERE id=$2`, [status, id]);
+
+    const result = await pool.query(`SELECT * FROM orders WHERE id=$1`, [id]);
+    const order = result.rows[0];
+
+    io.to(`user_${order.user_id}`).emit("order:update", { order });
+    io.to("baristas").emit("order:update", { order });
+
+    res.json({ message: "Status updated", order });
+  } catch (err) {
+    console.error("PG Status Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+module.exports = router;
+module.exports.setSocketIO = router.setSocketIO;
