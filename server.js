@@ -7,12 +7,12 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const initializePostgres = require("./init_pg_auto");
 
-initializePostgres(); // ensure tables + defaults
+initializePostgres();
 
 const app = express();
 const server = http.createServer(app);
 
-/* ---------------- SOCKET.IO ---------------- */
+/* SOCKET.IO */
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -25,7 +25,7 @@ const io = new Server(server, {
   }
 });
 
-/* ---------------- MIDDLEWARE ---------------- */
+/* MIDDLEWARE */
 app.use(cors({
   origin: [
     "http://localhost:3000",
@@ -38,28 +38,27 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
-/* ---------------- ROUTES ---------------- */
+/* ROUTES */
 app.use("/api/auth", require("./routes/auth_pg"));
-app.use("/api/menu", require("./routes/menu_pg"));
+
+const menuRoutes = require("./routes/menu_pg");
+app.use("/api/menu", menuRoutes);
 
 const orderRoutes = require("./routes/orders_pg");
 orderRoutes.setSocketIO(io);
 app.use("/api/orders", orderRoutes);
 
-/* ---------------- SOCKET.IO EVENTS ---------------- */
+/* SOCKET EVENTS */
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
   socket.on("register", ({ token }) => {
     try {
-      if (!token) return;
-      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      // join rooms:
-      socket.join(`user_${decoded.id}`);
-      if (decoded.role === "barista") socket.join("baristas");
-      console.log("Socket registered for user", decoded.id);
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      socket.join(`user_${user.id}`);
+      if (user.role === "barista") socket.join("baristas");
     } catch (err) {
-      console.log("Invalid WS token from client");
+      console.log("Invalid WS token");
     }
   });
 
@@ -68,10 +67,6 @@ io.on("connection", (socket) => {
   });
 });
 
-/* ---------------- START ---------------- */
+/* START */
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🔥 Server running on PORT ${PORT}`));
-const menuRoutes = require("./routes/menu_pg");
-menuRoutes.setSocket(io);
-app.use("/api/menu", menuRoutes);
-
+server.listen(PORT, () => console.log("🔥 Server running on PORT", PORT));
