@@ -5,9 +5,9 @@ const pool = require("../db");
 const { verifyAccessToken, requireRoles } = require("../middleware/auth");
 
 let io = null;
-router.setSocketIO = (socketInstance) => (io = socketInstance);
+router.setSocketIO = s => io = s;
 
-/* CUSTOMER — place order */
+/* CUSTOMER — PLACE ORDER */
 router.post(
   "/create",
   verifyAccessToken,
@@ -23,27 +23,49 @@ router.post(
         [req.user.id, JSON.stringify(items), total]
       );
 
+      // Notify baristas
       io.to("baristas").emit("new-order", result.rows[0]);
 
-      res.json({ message: "Order placed", order: result.rows[0] });
+      res.json({
+        message: "Order placed",
+        order: result.rows[0]
+      });
+
     } catch (err) {
-      res.status(500).json({ message: "Order error" });
+      console.error("Order error:", err);
+      res.status(500).json({ message: "Order failed" });
     }
   }
 );
 
-/* BARISTA — get orders */
+/* CUSTOMER — THEIR OWN ORDERS */
 router.get(
-  "/all",
+  "/mine",
   verifyAccessToken,
-  requireRoles("barista"),
-  async (_, res) => {
-    const result = await pool.query("SELECT * FROM orders ORDER BY id DESC");
+  requireRoles("customer"),
+  async (req, res) => {
+    const result = await pool.query(
+      "SELECT * FROM orders WHERE user_id=$1 ORDER BY id DESC",
+      [req.user.id]
+    );
     res.json(result.rows);
   }
 );
 
-/* BARISTA — update status */
+/* BARISTA — ALL ORDERS */
+router.get(
+  "/all",
+  verifyAccessToken,
+  requireRoles("barista"),
+  async (req, res) => {
+    const result = await pool.query(
+      "SELECT * FROM orders ORDER BY id DESC"
+    );
+    res.json(result.rows);
+  }
+);
+
+/* BARISTA — UPDATE STATUS */
 router.put(
   "/status/:id",
   verifyAccessToken,
@@ -58,8 +80,7 @@ router.put(
     );
 
     io.emit("order-status", { id, status });
-
-    res.json({ message: "Order updated" });
+    res.json({ message: "Status updated" });
   }
 );
 
