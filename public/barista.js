@@ -1,3 +1,7 @@
+// ===============================
+// BARISTA DASHBOARD FRONTEND
+// ===============================
+
 const API = "https://mochamist.onrender.com";
 const token = localStorage.getItem("accessToken");
 
@@ -5,7 +9,12 @@ if (!token) location.href = "/";
 
 const socket = io(API, { transports: ["websocket"] });
 
-function $(id) { return document.getElementById(id); }
+// IMPORTANT: JOIN BARISTA ROOM
+socket.emit("join", "baristas");
+
+function $(id) {
+  return document.getElementById(id);
+}
 
 /* ========== PAGE SWITCH ========== */
 function showPage(page) {
@@ -20,7 +29,9 @@ function logout() {
 }
 
 /* ========== TOAST ========== */
-function toast(msg) { alert(msg); }
+function toast(msg) {
+  alert(msg);
+}
 
 /* ========== LOAD MENU ========== */
 async function loadMenu() {
@@ -92,8 +103,10 @@ async function loadOrders() {
     .map(
       (o) => `
       <div class="order-card">
-        <b>Order #${o.id}</b> — ${o.status}<br>
-        <small>${new Date(o.time).toLocaleString()}</small><br><br>
+        <b>Order #${o.id}</b> — <span>${o.status}</span><br>
+        <small>${new Date(o.created_at || o.time).toLocaleString()}</small><br><br>
+        
+        <button onclick="updateStatus(${o.id}, 'Preparing')">Preparing</button>
         <button onclick="updateStatus(${o.id}, 'Ready')">Ready</button>
         <button onclick="updateStatus(${o.id}, 'Served')">Served</button>
       </div>
