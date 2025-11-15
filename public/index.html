@@ -128,52 +128,53 @@
 
   <!-- ⭐ REPLACE the old login script with THIS one -->
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
 
-    const backendURL = "https://mochamist.onrender.com";
+  const backendURL = "https://mochamist.onrender.com";
 
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const role = document.querySelector(".role-card.selected").dataset.role;
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.querySelector(".role-card.selected").dataset.role;
 
-      console.log("Submitting: ", email, password, role);
+    console.log("Submitting:", { email, password, role });
 
-      try {
-        const res = await fetch(`${backendURL}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email, password, role })
-        });
+    try {
+      const res = await fetch(`${backendURL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password, role })
+      });
 
-        const data = await res.json();
+      const data = await res.json();
+      console.log("Response:", data);
 
-        console.log("Response:", data);
-
-        if (!res.ok) {
-          alert(data.message || "Invalid login");
-          return;
-        }
-
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        if (data.user.role === "customer") {
-          window.location.href = "customer.html";   <!-- ⭐ no / -->
-        } else {
-          window.location.href = "barista.html";    <!-- ⭐ no / -->
-        }
-
-      } catch (err) {
-        console.error("Login error:", err);
-        alert("Network error");
+      if (!res.ok) {
+        alert(data.message || "Invalid login");
+        return;
       }
-    });
 
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.user.role === "customer") {
+        window.location.href = "customer.html";
+      } else {
+        window.location.href = "barista.html";
+      }
+
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Network error");
+    }
   });
-  </script>
+
+});
+</script>
+
 </body>
 </html>
+
