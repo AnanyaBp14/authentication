@@ -68,27 +68,56 @@ async function initDB() {
     `);
     console.log("✔ default barista inserted (if missing)");
 
-    /* ---------------- DEFAULT MENU ---------------- */
+    /* ---------------- DEFAULT MENU ITEMS (CAST FIX APPLIED) ---------------- */
     const defaultMenu = [
-      ['Cappuccino', 'Rich espresso with steamed milk foam', 'Coffee', 140],
-      ['Latte', 'Smooth and creamy milk + espresso', 'Coffee', 160],
-      ['Cold Brew', 'Chilled slowly brewed coffee', 'Coffee', 180],
-      ['Mocha', 'Chocolate + Espresso + Milk', 'Coffee', 170],
-      ['Espresso', 'Strong & bold single shot', 'Coffee', 90]
+      {
+        name: "Cappuccino",
+        description: "Rich espresso with steamed milk foam",
+        category: "Coffee",
+        price: 140
+      },
+      {
+        name: "Latte",
+        description: "Smooth and creamy milk + espresso",
+        category: "Coffee",
+        price: 160
+      },
+      {
+        name: "Cold Brew",
+        description: "Chilled slowly brewed coffee",
+        category: "Coffee",
+        price: 180
+      },
+      {
+        name: "Mocha",
+        description: "Chocolate + Espresso + Milk",
+        category: "Coffee",
+        price: 170
+      },
+      {
+        name: "Espresso",
+        description: "Strong & bold single shot",
+        category: "Coffee",
+        price: 90
+      }
     ];
 
     for (const item of defaultMenu) {
       await pool.query(
-        `INSERT INTO menu (name, description, category, price)
-         SELECT $1, $2, $3, $4
-         WHERE NOT EXISTS (SELECT 1 FROM menu WHERE name=$1);`,
-        item
+        `
+        INSERT INTO menu (name, description, category, price)
+        SELECT CAST($1 AS VARCHAR), CAST($2 AS TEXT), CAST($3 AS VARCHAR), CAST($4 AS DECIMAL)
+        WHERE NOT EXISTS (
+          SELECT 1 FROM menu WHERE name = $1
+        );
+        `,
+        [item.name, item.description, item.category, item.price]
       );
     }
 
     console.log("✔ default menu items added (no duplicates)");
-
     console.log("🎉 PostgreSQL initialization complete!");
+
     process.exit(0);
 
   } catch (err) {
