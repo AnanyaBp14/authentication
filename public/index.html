@@ -265,7 +265,6 @@
       margin-top: 3rem;
     }
 
-    /* ANIMATIONS */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
@@ -343,26 +342,60 @@
 
   <footer>© 2025 Mocha~Mist — All Rights Reserved</footer>
 
+  <!-- ROLE TOGGLING -->
   <script>
-    // Role selector
     document.querySelectorAll('.role').forEach(role => {
       role.addEventListener('click', () => {
         document.querySelectorAll('.role').forEach(r => r.classList.remove('selected'));
         role.classList.add('selected');
       });
     });
+  </script>
 
-    // Login redirect (frontend only)
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const selectedRole = document.querySelector('.role.selected').dataset.role;
+  <!-- BACKEND LOGIN -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
 
-      if (selectedRole === 'customer') window.location.href = 'customer.html';
-      else if (selectedRole === 'barista') window.location.href = 'barista.html';
-      else window.location.href = 'admin.html';
+      const backendURL = "https://mochamist.onrender.com";
+
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const role = document.querySelector(".role.selected").dataset.role;
+
+        try {
+          const res = await fetch(`${backendURL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, password, role })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.message || "Invalid login");
+            return;
+          }
+
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("user", JSON.stringify(data.user));
+
+          if (data.user.role === "customer") {
+            window.location.href = "./customer.html";
+          } else {
+            window.location.href = "./barista.html";
+          }
+
+        } catch (err) {
+          alert("Network error");
+        }
+      });
+
     });
   </script>
 
 </body>
 </html>
-
