@@ -1,285 +1,365 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mocha~Mist — Customer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mocha~Mist ☁️ — Login</title>
 
   <style>
-  :root {
-    --brown-dark: #3b2416;
-    --brown-mid: #6b4024;
-    --brown-light: #c49a6c;
-    --cream-bg: #f7f2ea;
-    --card-bg: #ffffff;
-    --card-shadow: rgba(0,0,0,0.10);
-  }
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
 
-  body {
-    font-family: Poppins, sans-serif;
-    background: var(--cream-bg);
-    margin: 0;
-    color: var(--brown-dark);
-  }
+    :root {
+      --brown-dark: #3b2416;
+      --brown-mid: #6b4024;
+      --brown-light: #c49a6c;
+      --cream-bg: #f7f2ea;
+      --white: #ffffff;
+    }
 
-  /* HEADER */
-  header {
-    background: #ffffff;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 3px 14px rgba(0,0,0,0.08);
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    border-bottom: 3px solid var(--brown-light);
-  }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
 
-  header h2 {
-    font-weight: 600;
-    font-size: 24px;
-    color: var(--brown-dark);
-    letter-spacing: 0.5px;
-  }
+    body {
+      background-color: var(--cream-bg);
+      overflow-x: hidden;
+      color: var(--brown-dark);
+    }
 
-  .nav-right a {
-    margin-left: 1.5rem;
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--brown-mid);
-    text-decoration: none;
-    transition: 0.25s;
-  }
+    /* NAVBAR */
+    nav {
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      border-bottom: 2px solid var(--brown-light);
+    }
 
-  .nav-right a:hover {
-    color: var(--brown-light);
-    transform: translateY(-1px);
-  }
+    nav .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 600;
+      color: var(--brown-mid);
+      font-size: 1.4rem;
+    }
 
-  /* PAGE CONTAINER */
-  .container {
-    padding: 40px 40px;
-    max-width: 1200px;
-    margin: auto;
-  }
+    nav .logo img {
+      width: 38px;
+      height: 38px;
+    }
 
-  h1 {
-    color: var(--brown-mid);
-    margin-bottom: 14px;
-    font-size: 30px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    text-shadow: 0 1px 0 #fff;
-  }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.8rem;
+    }
 
-  /* MENU GRID */
-  #menuGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 26px;
-    margin-top: 20px;
-  }
+    nav ul li a {
+      text-decoration: none;
+      color: var(--brown-mid);
+      font-weight: 500;
+      transition: 0.3s ease;
+    }
 
-  .menu-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 18px;
-    box-shadow: 0 6px 20px var(--card-shadow);
-    border-left: 4px solid var(--brown-light);
-    transition: 0.3s ease;
-  }
+    nav ul li a:hover {
+      color: var(--brown-light);
+      transform: translateY(-2px);
+    }
 
-  .menu-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
-  }
+    /* HERO */
+    .hero {
+      height: 100vh;
+      background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+        url("https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=2000&q=80")
+          center/cover no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 2rem;
+      color: #fff;
+      text-align: center;
+    }
 
-  .menu-card b {
-    display: block;
-    color: var(--brown-dark);
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 3px;
-  }
+    .hero h1 {
+      font-size: 3.4rem;
+      font-weight: 600;
+      animation: slideDown 1s ease forwards;
+    }
 
-  .menu-card small {
-    color: #7a6a60;
-  }
+    .hero p {
+      max-width: 600px;
+      margin: 1rem auto 2rem auto;
+      color: #f5e3cf;
+      animation: fadeIn 1.6s ease forwards;
+    }
 
-  .menu-card button {
-    margin-top: 14px;
-    width: 100%;
-    padding: 10px;
-    border-radius: 12px;
-    border: none;
-    background: var(--brown-mid);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s;
-  }
+    .hero button {
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      background: var(--brown-light);
+      border: none;
+      color: var(--brown-dark);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1.05rem;
+      transition: 0.3s;
+      animation: fadeInUp 2s ease forwards;
+    }
 
-  .menu-card button:hover {
-    background: var(--brown-dark);
-  }
+    .hero button:hover {
+      background: #fff;
+      transform: scale(1.07);
+    }
 
-  /* CART */
-  #cartItems {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+    /* LOGIN SECTION */
+    .login-section {
+      padding: 5rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
 
-  .cart-item {
-    background: var(--card-bg);
-    padding: 18px;
-    border-radius: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 5px 18px var(--card-shadow);
-    border-left: 4px solid var(--brown-light);
-  }
+    .login-box {
+      width: 100%;
+      max-width: 430px;
+      background: var(--white);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      text-align: center;
+      border-top: 5px solid var(--brown-light);
+      animation: fadeInUp 1s ease forwards;
+    }
 
-  .cart-item .name {
-    font-weight: 600;
-    font-size: 18px;
-    color: var(--brown-mid);
-  }
+    .login-box img {
+      width: 85px;
+      margin-bottom: 0.8rem;
+    }
 
-  button.remove {
-    background: #e05a4f;
-    border: none;
-    padding: 8px 12px;
-    color: #fff;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.25s;
-  }
+    .login-box h2 {
+      color: var(--brown-mid);
+      margin-bottom: 1rem;
+      font-size: 1.6rem;
+    }
 
-  button.remove:hover {
-    background: #bf433c;
-  }
+    .input-group {
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
 
-  #cartSection button {
-    margin-top: 25px;
-    width: 240px;
-    padding: 14px;
-    border-radius: 12px;
-    background: var(--brown-mid);
-    border: none;
-    color: white;
-    font-size: 17px;
-    cursor: pointer;
-    font-weight: 600;
-  }
+    .input-group label {
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
 
-  #cartSection button:hover {
-    background: var(--brown-dark);
-  }
+    .input-group input {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 12px;
+      border: 1px solid #d5c9c0;
+      font-size: 0.95rem;
+      transition: 0.25s;
+    }
 
-  /* ORDERS */
-  #ordersList {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+    .input-group input:focus {
+      border-color: var(--brown-light);
+      box-shadow: 0 0 0 3px rgba(196, 154, 108, 0.25);
+      outline: none;
+    }
 
-  .order-card {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0 5px 20px var(--card-shadow);
-    border-left: 5px solid var(--brown-light);
-    transition: 0.3s ease;
-  }
+    .role-container {
+      margin: 1.3rem 0;
+      text-align: left;
+    }
 
-  .order-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
-  }
+    .role-container p {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
 
-  .order-card b {
-    color: var(--brown-mid);
-    font-size: 19px;
-  }
+    .role-card {
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: 1px solid #d4c8bc;
+      cursor: pointer;
+      margin-bottom: 0.6rem;
+      transition: 0.3s;
+    }
 
-  .order-card small {
-    color: #8a7669;
-  }
+    .role-card:hover {
+      background: #f3e5d6;
+    }
 
-  /* TOAST */
-  #toastBox {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-  }
+    .role-card.selected {
+      border: 2px solid var(--brown-light);
+      background: #f3ddc5;
+    }
 
-  .toast {
-    background: var(--card-bg);
-    padding: 15px 18px;
-    border-radius: 13px;
-    margin-top: 12px;
-    box-shadow: 0 5px 18px rgba(0,0,0,0.15);
-    border-left: 5px solid var(--brown-light);
-    animation: slideIn 0.4s ease-out;
-    color: var(--brown-dark);
-    font-weight: 500;
-  }
+    .login-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--brown-mid);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s ease;
+      margin-top: 0.8rem;
+    }
 
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(50px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
+    .login-btn:hover {
+      background: var(--brown-dark);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      margin-top: 4rem;
+      background: var(--brown-mid);
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
-
 </head>
 
 <body>
 
-<header>
-  <h2>☕ Mocha~Mist</h2>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      <img src="brown-coffee-cup-logo-design-hd-png-701751694776791z8t9jck4mz.png">
+      Mocha~Mist
+    </div>
 
-  <div class="nav-right">
-    <a onclick="showSection('menu')">Menu</a>
-    <a onclick="showSection('cart')">Cart (<span id="cartCount">0</span>)</a>
-    <a onclick="showSection('orders')">Orders</a>
-    <a onclick="logout()">Logout</a>
-  </div>
-</header>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#login">Login</a></li>
+    </ul>
+  </nav>
 
-<div class="container">
-
-  <!-- MENU -->
-  <section id="menuSection">
-    <h1>Menu</h1>
-    <div id="menuGrid"></div>
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <h1>Welcome to Mocha~Mist ☁️</h1>
+    <p>Your cloud-powered café — connecting Customers & Baristas in real time.</p>
+    <button onclick="location.href='#login'">Get Started</button>
   </section>
 
-  <!-- CART -->
-  <section id="cartSection" style="display:none;">
-    <h1>Your Cart</h1>
-    <div id="cartItems"></div>
-    <button onclick="placeOrder()">Place Order</button>
+  <!-- LOGIN -->
+  <section class="login-section" id="login">
+    <div class="login-box">
+      <img src="brown-coffee-cup-logo-design-hd-png-701751694776791z8t9jck4mz.png">
+
+      <h2>Sign In</h2>
+
+      <form id="loginForm">
+        <div class="input-group">
+          <label>Email</label>
+          <input id="email" type="email" required />
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <input id="password" type="password" required />
+        </div>
+
+        <div class="role-container">
+          <p>Select Role</p>
+          <div class="role-card selected" data-role="customer">Customer</div>
+          <div class="role-card" data-role="barista">Barista</div>
+        </div>
+
+        <button type="submit" class="login-btn">Sign In</button>
+      </form>
+    </div>
   </section>
 
-  <!-- ORDERS -->
-  <section id="ordersSection" style="display:none;">
-    <h1>Your Orders</h1>
-    <div id="ordersList"></div>
-  </section>
+  <footer>© 2025 Mocha~Mist — All Rights Reserved</footer>
 
-</div>
+  <!-- ROLE SELECTION JS -->
+  <script>
+    document.querySelectorAll(".role-card").forEach(card => {
+      card.addEventListener("click", () => {
+        document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
+        card.classList.add("selected");
+      });
+    });
+  </script>
 
-<script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
-<script src="/customer.js?v=11"></script>
+  <!-- LOGIN LOGIC (UNCHANGED, BACKEND SAFE) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
 
-<div id="toastBox"></div>
+      const backendURL = "https://mochamist.onrender.com";
+
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const role = document.querySelector(".role-card.selected").dataset.role;
+
+        try {
+          const res = await fetch(`${backendURL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, password, role })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.message || "Invalid login");
+            return;
+          }
+
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("user", JSON.stringify(data.user));
+
+          if (data.user.role === "customer") {
+            window.location.href = "./customer.html";
+          } else {
+            window.location.href = "./barista.html";
+          }
+
+        } catch (err) {
+          alert("Network error, try again.");
+        }
+      });
+
+    });
+  </script>
 
 </body>
 </html>
