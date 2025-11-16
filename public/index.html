@@ -1,171 +1,285 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mocha~Mist ☁️ — Login</title>
+  <meta charset="UTF-8">
+  <title>Mocha~Mist — Customer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+  :root {
+    --brown-dark: #3b2416;
+    --brown-mid: #6b4024;
+    --brown-light: #c49a6c;
+    --cream-bg: #f7f2ea;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.10);
+  }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-    body { background-color: #fbf7f1; color: #4c3a2f; }
+  body {
+    font-family: Poppins, sans-serif;
+    background: var(--cream-bg);
+    margin: 0;
+    color: var(--brown-dark);
+  }
 
-    nav {
-      width: 100%; position: fixed; top: 0; left: 0;
-      background: rgba(255,255,255,0.9);
-      padding: 1rem 2rem; display: flex;
-      justify-content: space-between; align-items: center;
-      z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    nav .logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #6b4024; font-size: 1.3rem; }
-    nav .logo img { width: 32px; height: 32px; }
-    nav ul { display: flex; list-style: none; gap: 1.5rem; }
-    nav ul li a { color: #4c3a2f; text-decoration: none; font-weight: 500; transition: 0.3s; }
-    nav ul li a:hover { color: #c49a6c; }
+  /* HEADER */
+  header {
+    background: #ffffff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 3px solid var(--brown-light);
+  }
 
-    .hero {
-      height: 100vh;
-      background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-        url("https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=2000&q=80") center/cover;
-      display: flex; justify-content: center; align-items: center;
-      flex-direction: column; padding: 2rem; color: #fff; text-align: center;
-    }
-    .hero h1 { font-size: 3.2rem; margin-bottom: 1rem; }
-    .hero p { max-width: 600px; margin-bottom: 2rem; color: #f8e8d3; }
-    .hero button {
-      background: #f4e2cf; padding: 0.9rem 2rem; border-radius: 50px;
-      border: none; color: #4c3a2f; font-weight: 600; cursor: pointer; transition: 0.3s;
-    }
-    .hero button:hover { background: #fff; transform: scale(1.05); }
+  header h2 {
+    font-weight: 600;
+    font-size: 24px;
+    color: var(--brown-dark);
+    letter-spacing: 0.5px;
+  }
 
-    .login-section { padding: 4rem 1rem; display: flex; justify-content: center; }
-    .login-box {
-      width: 100%; max-width: 400px; background: #fff; padding: 2rem;
-      border-radius: 18px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-    }
+  .nav-right a {
+    margin-left: 1.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--brown-mid);
+    text-decoration: none;
+    transition: 0.25s;
+  }
 
-    .input-group { margin-bottom: 1rem; text-align: left; }
-    .input-group label { display: block; margin-bottom: 0.2rem; font-weight: 500; }
-    .input-group input {
-      width: 100%; padding: 0.8rem; border: 1px solid #d9cfc4; border-radius: 10px;
-    }
+  .nav-right a:hover {
+    color: var(--brown-light);
+    transform: translateY(-1px);
+  }
 
-    .role-container { margin: 1.3rem 0; text-align: left; }
-    .role-card {
-      border: 1px solid #d9cfc4; padding: 0.7rem;
-      border-radius: 10px; cursor: pointer; margin-bottom: 0.5rem; transition: 0.2s;
-    }
-    .role-card.selected { border: 2px solid #c49a6c; background: #f4e2cf; }
+  /* PAGE CONTAINER */
+  .container {
+    padding: 40px 40px;
+    max-width: 1200px;
+    margin: auto;
+  }
 
-    .login-btn {
-      width: 100%; padding: 0.9rem; background: #6b4024; color: #fff;
-      border: none; border-radius: 10px; cursor: pointer; font-size: 1rem;
-    }
-    .login-btn:hover { background: #4a2b16; }
+  h1 {
+    color: var(--brown-mid);
+    margin-bottom: 14px;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 0 #fff;
+  }
 
-    footer { margin-top: 4rem; background:#6b4024; color:#fff; text-align:center; padding:1rem; }
+  /* MENU GRID */
+  #menuGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 26px;
+    margin-top: 20px;
+  }
+
+  .menu-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 6px 20px var(--card-shadow);
+    border-left: 4px solid var(--brown-light);
+    transition: 0.3s ease;
+  }
+
+  .menu-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+  }
+
+  .menu-card b {
+    display: block;
+    color: var(--brown-dark);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .menu-card small {
+    color: #7a6a60;
+  }
+
+  .menu-card button {
+    margin-top: 14px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    background: var(--brown-mid);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+  }
+
+  .menu-card button:hover {
+    background: var(--brown-dark);
+  }
+
+  /* CART */
+  #cartItems {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .cart-item {
+    background: var(--card-bg);
+    padding: 18px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 18px var(--card-shadow);
+    border-left: 4px solid var(--brown-light);
+  }
+
+  .cart-item .name {
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--brown-mid);
+  }
+
+  button.remove {
+    background: #e05a4f;
+    border: none;
+    padding: 8px 12px;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.25s;
+  }
+
+  button.remove:hover {
+    background: #bf433c;
+  }
+
+  #cartSection button {
+    margin-top: 25px;
+    width: 240px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--brown-mid);
+    border: none;
+    color: white;
+    font-size: 17px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  #cartSection button:hover {
+    background: var(--brown-dark);
+  }
+
+  /* ORDERS */
+  #ordersList {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .order-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 5px 20px var(--card-shadow);
+    border-left: 5px solid var(--brown-light);
+    transition: 0.3s ease;
+  }
+
+  .order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  }
+
+  .order-card b {
+    color: var(--brown-mid);
+    font-size: 19px;
+  }
+
+  .order-card small {
+    color: #8a7669;
+  }
+
+  /* TOAST */
+  #toastBox {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+  }
+
+  .toast {
+    background: var(--card-bg);
+    padding: 15px 18px;
+    border-radius: 13px;
+    margin-top: 12px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.15);
+    border-left: 5px solid var(--brown-light);
+    animation: slideIn 0.4s ease-out;
+    color: var(--brown-dark);
+    font-weight: 500;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
   </style>
+
 </head>
+
 <body>
 
-  <nav>
-    <div class="logo"><img src="brown-coffee-cup-logo-design-hd-png-701751694776791z8t9jck4mz.png"> Mocha~Mist</div>
-    <ul><li><a href="#home">Home</a></li><li><a href="#login">Login</a></li></ul>
-  </nav>
+<header>
+  <h2>☕ Mocha~Mist</h2>
 
-  <section class="hero" id="home">
-    <h1>Welcome to Mocha~Mist ☁️</h1>
-    <p>Cloud-powered coffee ordering — connecting Customers & Baristas.</p>
-    <button onclick="location.href='#login'">Login Now</button>
+  <div class="nav-right">
+    <a onclick="showSection('menu')">Menu</a>
+    <a onclick="showSection('cart')">Cart (<span id="cartCount">0</span>)</a>
+    <a onclick="showSection('orders')">Orders</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- MENU -->
+  <section id="menuSection">
+    <h1>Menu</h1>
+    <div id="menuGrid"></div>
   </section>
 
-  <section class="login-section" id="login">
-    <div class="login-box">
-      <img src="brown-coffee-cup-logo-design-hd-png-701751694776791z8t9jck4mz.png" width="80">
-      <h2>Login</h2>
-
-      <form id="loginForm">
-        <div class="input-group">
-          <label>Email</label>
-          <input id="email" type="email" required />
-        </div>
-
-        <div class="input-group">
-          <label>Password</label>
-          <input id="password" type="password" required />
-        </div>
-
-        <div class="role-container">
-          <p>Select Role</p>
-          <div class="role-card selected" data-role="customer">Customer</div>
-          <div class="role-card" data-role="barista">Barista</div>
-        </div>
-
-        <button type="submit" class="login-btn">Sign In</button>
-      </form>
-    </div>
+  <!-- CART -->
+  <section id="cartSection" style="display:none;">
+    <h1>Your Cart</h1>
+    <div id="cartItems"></div>
+    <button onclick="placeOrder()">Place Order</button>
   </section>
 
-  <footer>© 2025 Mocha~Mist — All Rights Reserved</footer>
+  <!-- ORDERS -->
+  <section id="ordersSection" style="display:none;">
+    <h1>Your Orders</h1>
+    <div id="ordersList"></div>
+  </section>
 
-  <script>
-    document.querySelectorAll(".role-card").forEach(card => {
-      card.addEventListener("click", () => {
-        document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
-        card.classList.add("selected");
-      });
-    });
-  </script>
+</div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
+<script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
+<script src="/customer.js?v=11"></script>
 
-      const backendURL = "https://mochamist.onrender.com";
-
-      document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const role = document.querySelector(".role-card.selected").dataset.role;
-
-        console.log("LOGIN REQUEST:", { email, role });
-
-        try {
-          const res = await fetch(`${backendURL}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ email, password, role })
-          });
-
-          const data = await res.json();
-          console.log("LOGIN RESPONSE:", data);
-
-          if (!res.ok) {
-            alert(data.message || "Invalid login");
-            return;
-          }
-
-          localStorage.setItem("accessToken", data.accessToken);
-          localStorage.setItem("user", JSON.stringify(data.user));
-
-          if (data.user.role === "customer") {
-            window.location.href = "./customer.html";     // ⭐ FIXED
-          } else {
-            window.location.href = "./barista.html";      // ⭐ FIXED
-          }
-
-        } catch (err) {
-          console.error("Login error:", err);
-          alert("Network error");
-        }
-      });
-
-    });
-  </script>
+<div id="toastBox"></div>
 
 </body>
 </html>
-
