@@ -1,536 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mocha~Mist ☁️ | Customer Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Mocha~Mist — Customer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+  body {
+    font-family: Poppins, sans-serif;
+    background: #faf5ef;
+    margin: 0;
+    color: #4b3a2f;
+  }
 
-    * {
-      margin: 0; padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", sans-serif;
-    }
+  /* TOP NAV */
+  header {
+    background: #ffffff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  header h2 {
+    font-weight: 600;
+    color: #6b4024;
+  }
 
-    body {
-      background-color: #fbf7f1;
-      color: #3c2f24;
-    }
+  .nav-right a {
+    margin-left: 1.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6b4024;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+  .nav-right a:hover {
+    color: #a5744c;
+  }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #fff;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 2px solid #c49a6c;
-    }
+  .container {
+    padding: 30px 40px;
+  }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-weight: 600;
-      color: #6b4024;
-      font-size: 1.3rem;
-    }
+  h1 {
+    color: #6b4024;
+    margin-bottom: 10px;
+    font-size: 28px;
+  }
 
-    nav {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-    }
+  /* MENU GRID */
+  #menuGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+  }
 
-    nav a {
-      text-decoration: none;
-      color: #4c3a2f;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.25s ease;
-    }
+  .menu-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: 0.25s;
+    text-align: left;
+  }
 
-    nav a:hover {
-      color: #c49a6c;
-      transform: translateY(-2px);
-    }
+  .menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
 
-    .cart-count {
-      background-color: #6b4024;
-      color: white;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 0.75rem;
-      margin-left: 3px;
-    }
+  .menu-card b {
+    color: #3b2a20;
+    font-size: 17px;
+  }
 
-    section {
-      padding: 2rem 3%;
-      animation: fadeIn 0.6s ease;
-    }
+  .menu-card small {
+    color: #7f6f66;
+  }
 
-    h2 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #6b4024;
-    }
+  .menu-card button {
+    margin-top: 12px;
+    width: 100%;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    background: #6b4024;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+  }
 
-    p.subtitle {
-      color: #8a7b6f;
-      margin-bottom: 1.5rem;
-    }
+  .menu-card button:hover {
+    background: #4a2e1a;
+  }
 
-    /* MENU GRID */
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.7rem;
-    }
+  /* CART */
+  #cartItems {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
 
-    .coffee-card {
-      background: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-      transition: 0.3s ease;
-    }
+  .cart-item {
+    background: #fff;
+    padding: 16px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
 
-    .coffee-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-    }
+  .cart-item .name {
+    font-weight: 600;
+    color: #6b4024;
+  }
 
-    .coffee-card img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
+  button.remove {
+    background: #e05a4f;
+    border: none;
+    padding: 6px 10px;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+  }
 
-    .coffee-card .details {
-      padding: 1rem;
-    }
+  #cartSection button {
+    margin-top: 20px;
+    width: 220px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #6b4024;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
 
-    .coffee-card h3 {
-      font-size: 1.1rem;
-      display: flex;
-      justify-content: space-between;
-    }
+  #cartSection button:hover {
+    background: #4e2b16;
+  }
 
-    .coffee-card p {
-      color: #7b6a58;
-      font-size: 0.9rem;
-      margin-top: 0.3rem;
-    }
+  /* ORDERS */
+  #ordersList {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
 
-    .coffee-card button {
-      width: 100%;
-      margin-top: 0.8rem;
-      background: #6b4024;
-      border: none;
-      color: #fff;
-      padding: 0.6rem 0;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: 0.3s ease;
-    }
+  .order-card {
+    background: #fff;
+    padding: 18px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+    border-left: 4px solid #c49a6c;
+  }
 
-    .coffee-card button:hover {
-      background: #4b2b18;
-    }
+  .order-card b {
+    color: #6b4024;
+    font-size: 18px;
+  }
 
-    /* CART */
-    .cart-container {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
+  .order-card small {
+    color: #8a7669;
+  }
 
-    .cart-items {
-      width: 60%;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
+  /* TOAST */
+  #toastBox {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+  }
 
-    .cart-item {
-      background: #fff;
-      padding: 1rem;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-    }
+  .toast {
+    background: white;
+    padding: 15px 18px;
+    border-radius: 12px;
+    margin-top: 10px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.15);
+    border-left: 5px solid #c49a6c;
+    animation: slideIn 0.4s ease-out;
+  }
 
-    .cart-item img {
-      width: 70px;
-      height: 70px;
-      border-radius: 12px;
-      object-fit: cover;
-      margin-right: 1rem;
-    }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+</style>
 
-    .qty-controls button {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: none;
-      background: #e7dfd7;
-      cursor: pointer;
-      font-size: 1rem;
-      color: #4c3a2f;
-    }
-
-    .remove-btn {
-      background: none;
-      border: none;
-      color: #c94a4a;
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
-
-    .order-summary {
-      background: #fff;
-      width: 280px;
-      padding: 1.4rem;
-      border-radius: 14px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.07);
-    }
-
-    .order-summary button {
-      width: 100%;
-      background: #6b4024;
-      color: #fff;
-      padding: 0.8rem;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    .order-summary button:hover {
-      background: #4b2b18;
-    }
-
-    /* ORDERS */
-    .order-card {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 14px;
-      margin-bottom: 1rem;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-      transition: 0.25s ease;
-    }
-
-    .order-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .progress-container {
-      height: 6px;
-      background: #e6ddd4;
-      border-radius: 4px;
-      margin-top: 0.8rem;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 6px;
-      background: linear-gradient(90deg, #6b4024, #c49a6c);
-      width: 0%;
-      transition: width 0.8s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
 </head>
 
 <body>
 
-  <header>
-    <div class="logo">☕ Mocha~Mist</div>
+<header>
+  <h2>☕ Mocha~Mist</h2>
+  <div class="nav-right">
+    <a onclick="showSection('menu')">Menu</a>
+    <a onclick="showSection('cart')">Cart <span id="cartCount">0</span></a>
+    <a onclick="showSection('orders')">Orders</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+</header>
 
-    <nav>
-      <a onclick="showSection('menu')">Menu</a>
-      <a onclick="showSection('cart')">Cart <span id="cartCount" class="cart-count">0</span></a>
-      <a onclick="showSection('orders')">My Orders</a>
-      <a href="index.html">Logout</a>
-    </nav>
-  </header>
+<div class="container">
+  <section id="menuSection"><h1>Menu</h1><div id="menuGrid"></div></section>
 
-  <!-- MENU -->
-  <section id="menuSection">
-    <h2>Our Menu</h2>
-    <p class="subtitle">Explore our handcrafted, cloud-powered beverages</p>
-    <div id="menuGrid" class="menu-grid"></div>
-  </section>
-
-  <!-- CART -->
   <section id="cartSection" style="display:none;">
-    <h2>Your Cart</h2>
-    <p class="subtitle">Review your items</p>
-
-    <div class="cart-container">
-      <div class="cart-items" id="cartItems"></div>
-
-      <div class="order-summary">
-        <div class="summary-box"><span>Subtotal:</span> <span id="subtotal">₹0.00</span></div>
-        <div class="summary-box"><span>Tax (8%):</span> <span id="tax">₹0.00</span></div>
-        <div class="summary-box"><strong>Total:</strong> <strong id="total">₹0.00</strong></div>
-        <button onclick="placeOrder()">Place Order ➜</button>
-      </div>
-    </div>
+    <h1>Your Cart</h1>
+    <div id="cartItems"></div>
+    <button onclick="placeOrder()">Place Order</button>
   </section>
 
-  <!-- ORDERS -->
   <section id="ordersSection" style="display:none;">
-    <h2>Order Tracking</h2>
-    <p class="subtitle">Track your coffee orders in real-time</p>
+    <h1>My Orders</h1>
+    <div id="ordersList"></div>
   </section>
+</div>
 
-  <footer style="text-align:center;padding:1rem;color:#8a7b6f;">
-    © 2025 Mocha~Mist — All Rights Reserved
-  </footer>
+<script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
+<script src="/customer.js?v=10"></script>
 
-  <script>
-    /* -------------------------
-       UPDATED MENU WITH INTERNET IMAGES
-    ---------------------------- */
-
-    let menu = [
-      {
-        name: "Espresso",
-        price: 150,
-        desc: "Strong and bold shot of pure coffee",
-        img: "https://images.unsplash.com/photo-1612183515105-8c737ba7585d?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Cappuccino",
-        price: 200,
-        desc: "Espresso with steamed milk and foam",
-        img: "https://images.unsplash.com/photo-1620052087057-bfd8235f5874?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Iced Americano",
-        price: 170,
-        desc: "Espresso with cold water and ice",
-        img: "https://images.unsplash.com/photo-1581996323441-538096e854b9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aWNlZCUyMGFtZXJpY2Fub3xlbnwwfHwwfHx8MA%3D%3D"
-      },
-      {
-        name: "Mocha",
-        price: 240,
-        desc: "Chocolate and espresso perfection",
-        img: "https://images.unsplash.com/photo-1632845407875-10b4d85e6bf8?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Filter Coffee",
-        price: 100,
-        desc: "Classic South Indian filter blend",
-        img: "https://images.unsplash.com/photo-1758387941825-a6ecaec9c14d?q=80&w=777&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Hazelnut Latte",
-        price: 260,
-        desc: "Espresso infused with nutty hazelnut",
-        img: "https://images.unsplash.com/photo-1598831745385-0c404c7034a9?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Iced Coffee",
-        price: 180,
-        desc: "Chilled espresso blended with cold water",
-        img: "https://images.unsplash.com/photo-1527156231393-7023794f363c?q=80&w=711&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Cafe Macchiato",
-        price: 220,
-        desc: "Espresso with a dollop of frothy milk",
-        img: "https://images.unsplash.com/photo-1608591038246-4981d06b11e1?q=80&w=702&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      }
-    ];
-
-
-    /* ------------- EXISTING FRONTEND LOGIC (unchanged) ------------- */
-
-    let cart = [];
-    let orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-    const menuGrid = document.getElementById("menuGrid");
-    const cartItems = document.getElementById("cartItems");
-    const cartCount = document.getElementById("cartCount");
-
-    function renderMenu() {
-      menuGrid.innerHTML = "";
-      menu.forEach((item, i) => {
-        const card = document.createElement("div");
-        card.className = "coffee-card";
-
-        card.innerHTML = `
-          <img src="${item.img}">
-          <div class="details">
-            <h3>${item.name} <span class="price">₹${item.price}</span></h3>
-            <p>${item.desc}</p>
-            <button onclick="addToCart(${i})">+ Add to Cart</button>
-          </div>
-        `;
-
-        menuGrid.appendChild(card);
-      });
-    }
-
-    function addToCart(i) {
-      const existing = cart.find(c => c.name === menu[i].name);
-      if (existing) existing.qty++;
-      else cart.push({ ...menu[i], qty: 1 });
-
-      updateCart();
-      alert(`${menu[i].name} added to cart!`);
-    }
-
-    function updateCart() {
-      cartCount.textContent = cart.reduce((a, b) => a + b.qty, 0);
-
-      cartItems.innerHTML = "";
-      let subtotal = 0;
-
-      cart.forEach((item, idx) => {
-        subtotal += item.price * item.qty;
-
-        const div = document.createElement("div");
-        div.className = "cart-item";
-
-        div.innerHTML = `
-          <img src="${item.img}">
-          <div style="flex-grow:1;">
-            <h4>${item.name}</h4>
-            <p>₹${item.price} each</p>
-            <div class="qty-controls">
-              <button onclick="changeQty(${idx}, -1)">−</button>
-              <span>${item.qty}</span>
-              <button onclick="changeQty(${idx}, 1)">+</button>
-            </div>
-          </div>
-          <strong>₹${(item.price * item.qty).toFixed(2)}</strong>
-          <button class="remove-btn" onclick="removeItem(${idx})">🗑️</button>
-        `;
-
-        cartItems.appendChild(div);
-      });
-
-      const taxAmount = subtotal * 0.08;
-      const totalAmount = subtotal + taxAmount;
-
-      document.getElementById("subtotal").textContent = `₹${subtotal.toFixed(2)}`;
-      document.getElementById("tax").textContent = `₹${taxAmount.toFixed(2)}`;
-      document.getElementById("total").textContent = `₹${totalAmount.toFixed(2)}`;
-    }
-
-    function changeQty(i, val) {
-      cart[i].qty += val;
-      if (cart[i].qty <= 0) cart.splice(i, 1);
-      updateCart();
-    }
-
-    function removeItem(i) {
-      cart.splice(i, 1);
-      updateCart();
-    }
-
-    function placeOrder() {
-      if (cart.length === 0) return alert("Your cart is empty!");
-
-      const subtotal = cart.reduce((a, b) => a + b.price * b.qty, 0);
-      const tax = subtotal * 0.08;
-      const total = subtotal + tax;
-
-      const order = {
-        id: Date.now(),
-        time: new Date().toLocaleString(),
-        items: [...cart],
-        total: total.toFixed(2),
-        status: "Preparing"
-      };
-
-      orders.push(order);
-      localStorage.setItem("orders", JSON.stringify(orders));
-
-      alert("Order placed successfully! ☕");
-
-      cart = [];
-      updateCart();
-      showSection("orders");
-      renderOrders();
-    }
-
-    function renderOrders() {
-      const orderSection = document.getElementById("ordersSection");
-
-      orderSection.innerHTML = `<h2>My Orders</h2><p class="subtitle">Track your coffee orders</p>`;
-
-      const sorted = [...orders].sort((a, b) => b.id - a.id);
-
-      if (sorted.length === 0) {
-        orderSection.innerHTML += `<p style="text-align:center;color:#7b6a58;">No orders yet.</p>`;
-        return;
-      }
-
-      sorted.forEach(order => {
-        const div = document.createElement("div");
-        div.className = "order-card";
-
-        div.innerHTML = `
-          <strong>Order #${order.id}</strong>
-          <span style="float:right;color:${getStatusColor(order.status)};">${order.status}</span>
-          <p style="color:#7b6a58;font-size:0.9rem;margin:0.5rem 0;">${order.time}</p>
-
-          <ul style="list-style:none;margin-left:0;padding-left:0;line-height:1.5;">
-            ${order.items.map(it => `<li>${it.name} ×${it.qty}</li>`).join("")}
-          </ul>
-
-          <p><strong>Total:</strong> ₹${order.total}</p>
-
-          <div class="progress-container">
-            <div class="progress-bar" style="width:${getStatusProgress(order.status)};"></div>
-          </div>
-        `;
-
-        orderSection.appendChild(div);
-      });
-    }
-
-    function getStatusProgress(status) {
-      return status === "Preparing" ? "33%" :
-             status === "Ready" ? "66%" :
-             status === "Served" ? "100%" : "0%";
-    }
-
-    function getStatusColor(status) {
-      return status === "Preparing" ? "#c9a34a" :
-             status === "Ready" ? "#6b4024" :
-             status === "Served" ? "green" : "#7b6a58";
-    }
-
-    function showSection(section) {
-      document.getElementById("menuSection").style.display = section === "menu" ? "block" : "none";
-      document.getElementById("cartSection").style.display = section === "cart" ? "block" : "none";
-      document.getElementById("ordersSection").style.display = section === "orders" ? "block" : "none";
-
-      if (section === "orders") renderOrders();
-    }
-
-    renderMenu();
-    renderOrders();
-  </script>
+<div id="toastBox"></div>
 
 </body>
 </html>
