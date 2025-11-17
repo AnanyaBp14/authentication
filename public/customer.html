@@ -253,6 +253,12 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Small responsive tweak */
+    @media (max-width: 900px) {
+      .cart-items { width: 100%; }
+      .order-summary { width: 100%; }
+    }
   </style>
 </head>
 
@@ -285,9 +291,15 @@
       <div class="cart-items" id="cartItems"></div>
 
       <div class="order-summary">
-        <div class="summary-box"><span>Subtotal:</span> <span id="subtotal">₹0.00</span></div>
-        <div class="summary-box"><span>Tax (8%):</span> <span id="tax">₹0.00</span></div>
-        <div class="summary-box"><strong>Total:</strong> <strong id="total">₹0.00</strong></div>
+        <div class="summary-box" style="display:flex;justify-content:space-between;margin-bottom:0.6rem;">
+          <span>Subtotal:</span> <span id="subtotal">₹0.00</span>
+        </div>
+        <div class="summary-box" style="display:flex;justify-content:space-between;margin-bottom:0.6rem;">
+          <span>Tax (8%):</span> <span id="tax">₹0.00</span>
+        </div>
+        <div class="summary-box" style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+          <strong>Total:</strong> <strong id="total">₹0.00</strong>
+        </div>
         <button onclick="placeOrder()">Place Order ➜</button>
       </div>
     </div>
@@ -303,83 +315,138 @@
     © 2025 Mocha~Mist — All Rights Reserved
   </footer>
 
+  <!-- Socket.IO client (CDN) -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
   <script>
-    /* -------------------------
-       UPDATED MENU WITH INTERNET IMAGES
-    ---------------------------- */
+    /**
+     * COMPLETE FRONTEND LOGIC (connected to hosted backend)
+     *
+     * IMPORTANT:
+     * - Replace API_BASE with your actual backend URL (e.g. https://mocha-backend.onrender.com)
+     * - The backend must serve CORS and accept Authorization: Bearer <token>
+     * - The backend must expose:
+     *     GET  /api/menu
+     *     POST /api/orders/create
+     *     GET  /api/orders/mine
+     *   and Socket.IO at the same origin
+     */
 
-    let menu = [
-      {
-        name: "Espresso",
-        price: 150,
-        desc: "Strong and bold shot of pure coffee",
-        img: "https://images.unsplash.com/photo-1612183515105-8c737ba7585d?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Cappuccino",
-        price: 200,
-        desc: "Espresso with steamed milk and foam",
-        img: "https://images.unsplash.com/photo-1620052087057-bfd8235f5874?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Iced Americano",
-        price: 170,
-        desc: "Espresso with cold water and ice",
-        img: "https://images.unsplash.com/photo-1581996323441-538096e854b9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aWNlZCUyMGFtZXJpY2Fub3xlbnwwfHwwfHx8MA%3D%3D"
-      },
-      {
-        name: "Mocha",
-        price: 240,
-        desc: "Chocolate and espresso perfection",
-        img: "https://images.unsplash.com/photo-1632845407875-10b4d85e6bf8?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Filter Coffee",
-        price: 100,
-        desc: "Classic South Indian filter blend",
-        img: "https://images.unsplash.com/photo-1758387941825-a6ecaec9c14d?q=80&w=777&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Hazelnut Latte",
-        price: 260,
-        desc: "Espresso infused with nutty hazelnut",
-        img: "https://images.unsplash.com/photo-1598831745385-0c404c7034a9?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Iced Coffee",
-        price: 180,
-        desc: "Chilled espresso blended with cold water",
-        img: "https://images.unsplash.com/photo-1527156231393-7023794f363c?q=80&w=711&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      },
-      {
-        name: "Cafe Macchiato",
-        price: 220,
-        desc: "Espresso with a dollop of frothy milk",
-        img: "https://images.unsplash.com/photo-1608591038246-4981d06b11e1?q=80&w=702&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      }
-    ];
+    // ---------- CONFIG ----------
+    const API_BASE = "https://YOUR_BACKEND_URL"; // <<-- REPLACE this with your real backend URL (no trailing slash)
+    const MENU_URL = `${API_BASE}/api/menu`;
+    const CREATE_ORDER_URL = `${API_BASE}/api/orders/create`;
+    const MY_ORDERS_URL = `${API_BASE}/api/orders/mine`;
 
-
-    /* ------------- EXISTING FRONTEND LOGIC (unchanged) ------------- */
-
+    // ---------- STATE ----------
+    let menu = [];
     let cart = [];
-    let orders = JSON.parse(localStorage.getItem("orders")) || [];
+    let orders = [];
+
+    // token (expected to be stored after login)
+    const token = localStorage.getItem("accessToken"); // change key if different
 
     const menuGrid = document.getElementById("menuGrid");
     const cartItems = document.getElementById("cartItems");
     const cartCount = document.getElementById("cartCount");
 
+    // ---------- HELPER: show friendly message if token not found ----------
+    if (!token) {
+      // token missing — user likely not logged in. You can redirect to login page if desired.
+      console.warn("No access token found in localStorage under key 'accessToken'. Requests to protected endpoints will fail. If you use authentication, store token in localStorage after login.");
+      // (We do not redirect automatically — keep it optional)
+    }
+
+    // ---------- SOCKET.IO (realtime updates) ----------
+    // connecting the socket to your hosted backend for realtime "order:update" or "order:new"
+    const socket = io(API_BASE, {
+      auth: { token }
+    });
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.warn("Socket connect error:", err.message || err);
+    });
+
+    // receive order updates (customer-specific or broadcasted)
+    socket.on("order:update", (updatedOrder) => {
+      console.log("order:update", updatedOrder);
+      const idx = orders.findIndex(o => o.id === updatedOrder.id);
+      if (idx !== -1) {
+        orders[idx] = updatedOrder;
+        renderOrders();
+      } else {
+        // if this order belongs to current user, add it
+        // note: backend should only emit to specific user room (user_<id>) but we keep safeguard
+        if (updatedOrder.user_id && updatedOrder.user_id === getUserIdFromToken()) {
+          orders.unshift(updatedOrder);
+          renderOrders();
+        }
+      }
+    });
+
+    // optional: new orders broadcast (barista notif) — ignore for customers
+    socket.on("order:new", (order) => {
+      console.log("order:new", order);
+    });
+
+    // ---------- UTIL: getUserIdFromToken (simple JWT decode) ----------
+    function getUserIdFromToken() {
+      if (!token) return null;
+      try {
+        const payload = token.split('.')[1];
+        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+        return decoded?.id || decoded?.userId || decoded?.sub || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ---------- LOAD MENU ----------
+    async function loadMenu() {
+      try {
+        const res = await fetch(MENU_URL);
+        if (!res.ok) throw new Error(`Menu fetch failed (${res.status})`);
+        const data = await res.json();
+        // normalize data: backend may name fields differently (image/description)
+        menu = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description || item.desc || "",
+          image: item.image || item.img || item.image_url || ""
+        }));
+        renderMenu();
+      } catch (err) {
+        console.error("Menu load error:", err);
+        menuGrid.innerHTML = `<p style="color:#c94a4a;">Failed to load menu. Check backend URL and CORS.</p>`;
+      }
+    }
+
+    // ---------- RENDER MENU ----------
     function renderMenu() {
       menuGrid.innerHTML = "";
+      if (!menu || menu.length === 0) {
+        menuGrid.innerHTML = `<p style="color:#7b6a58;">No menu items found.</p>`;
+        return;
+      }
+
       menu.forEach((item, i) => {
         const card = document.createElement("div");
         card.className = "coffee-card";
 
+        const imgSrc = item.image && item.image.length > 5
+                      ? item.image
+                      : "https://images.unsplash.com/photo-1604908554022-9e5db3a4f4d8?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.0.0";
+
         card.innerHTML = `
-          <img src="${item.img}">
+          <img src="${imgSrc}" alt="${escapeHtml(item.name)}">
           <div class="details">
-            <h3>${item.name} <span class="price">₹${item.price}</span></h3>
-            <p>${item.desc}</p>
+            <h3>${escapeHtml(item.name)} <span class="price">₹${item.price}</span></h3>
+            <p>${escapeHtml(item.description)}</p>
             <button onclick="addToCart(${i})">+ Add to Cart</button>
           </div>
         `;
@@ -388,13 +455,39 @@
       });
     }
 
-    function addToCart(i) {
-      const existing = cart.find(c => c.name === menu[i].name);
-      if (existing) existing.qty++;
-      else cart.push({ ...menu[i], qty: 1 });
+    // ---------- ESCAPE HTML ----------
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text.replaceAll('&', '&amp;')
+                 .replaceAll('<', '&lt;')
+                 .replaceAll('>', '&gt;')
+                 .replaceAll('"', '&quot;')
+                 .replaceAll("'", '&#039;');
+    }
+
+    // ---------- CART MANAGEMENT ----------
+    function addToCart(menuIndex) {
+      const item = menu[menuIndex];
+      if (!item) return;
+      const existing = cart.find(c => c.id === item.id);
+      if (existing) existing.qty += 1;
+      else cart.push({ id: item.id, name: item.name, price: item.price, qty: 1, image: item.image });
 
       updateCart();
-      alert(`${menu[i].name} added to cart!`);
+      // small unobtrusive toast behavior
+      showToast(`${item.name} added to cart`);
+    }
+
+    function changeQty(i, delta) {
+      if (!cart[i]) return;
+      cart[i].qty += delta;
+      if (cart[i].qty <= 0) cart.splice(i, 1);
+      updateCart();
+    }
+
+    function removeItem(i) {
+      cart.splice(i, 1);
+      updateCart();
     }
 
     function updateCart() {
@@ -410,11 +503,11 @@
         div.className = "cart-item";
 
         div.innerHTML = `
-          <img src="${item.img}">
+          <img src="${escapeHtml(item.image || 'https://images.unsplash.com/photo-1604908554022-9e5db3a4f4d8?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.0.0')}" alt="${escapeHtml(item.name)}">
           <div style="flex-grow:1;">
-            <h4>${item.name}</h4>
+            <h4>${escapeHtml(item.name)}</h4>
             <p>₹${item.price} each</p>
-            <div class="qty-controls">
+            <div class="qty-controls" style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem;">
               <button onclick="changeQty(${idx}, -1)">−</button>
               <span>${item.qty}</span>
               <button onclick="changeQty(${idx}, 1)">+</button>
@@ -435,51 +528,106 @@
       document.getElementById("total").textContent = `₹${totalAmount.toFixed(2)}`;
     }
 
-    function changeQty(i, val) {
-      cart[i].qty += val;
-      if (cart[i].qty <= 0) cart.splice(i, 1);
-      updateCart();
+    // small toast function
+    function showToast(msg) {
+      const el = document.createElement("div");
+      el.textContent = msg;
+      el.style.position = "fixed";
+      el.style.right = "20px";
+      el.style.bottom = "20px";
+      el.style.background = "rgba(0,0,0,0.8)";
+      el.style.color = "white";
+      el.style.padding = "10px 14px";
+      el.style.borderRadius = "10px";
+      el.style.zIndex = 9999;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
     }
 
-    function removeItem(i) {
-      cart.splice(i, 1);
-      updateCart();
-    }
-
-    function placeOrder() {
+    // ---------- PLACE ORDER (POST) ----------
+    async function placeOrder() {
+      if (!token) {
+        return alert("You must be logged in to place an order.");
+      }
       if (cart.length === 0) return alert("Your cart is empty!");
 
-      const subtotal = cart.reduce((a, b) => a + b.price * b.qty, 0);
-      const tax = subtotal * 0.08;
-      const total = subtotal + tax;
+      const items = cart.map(c => ({ id: c.id, name: c.name, qty: c.qty, price: c.price }));
 
-      const order = {
-        id: Date.now(),
-        time: new Date().toLocaleString(),
-        items: [...cart],
-        total: total.toFixed(2),
-        status: "Preparing"
-      };
+      const subtotal = items.reduce((a, b) => a + b.price * b.qty, 0);
+      const total = +(subtotal + subtotal * 0.08).toFixed(2);
 
-      orders.push(order);
-      localStorage.setItem("orders", JSON.stringify(orders));
+      try {
+        const res = await fetch(CREATE_ORDER_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ items, total })
+        });
 
-      alert("Order placed successfully! ☕");
+        const data = await res.json();
+        if (!res.ok) {
+          const msg = data?.message || `Order failed (${res.status})`;
+          console.error("Order create error:", data);
+          return alert(msg);
+        }
 
-      cart = [];
-      updateCart();
-      showSection("orders");
-      renderOrders();
+        showToast("Order placed successfully! ☕");
+        // clear cart & update
+        cart = [];
+        updateCart();
+
+        // reload user's orders and switch to orders view
+        await loadMyOrders();
+        showSection("orders");
+      } catch (err) {
+        console.error("Order create exception:", err);
+        alert("Failed to place order. Check network and backend.");
+      }
     }
 
+    // ---------- LOAD MY ORDERS ----------
+    async function loadMyOrders() {
+      if (!token) {
+        // If unauthenticated, show no orders but don't crash
+        orders = [];
+        renderOrders();
+        return;
+      }
+
+      try {
+        const res = await fetch(MY_ORDERS_URL, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(`Orders fetch failed (${res.status})`);
+        orders = await res.json();
+
+        // convert DB timestamps to Date if necessary
+        orders = orders.map(o => ({
+          ...o,
+          time: o.time || o.created_at || o.createdAt || o.time_created || new Date().toISOString()
+        }));
+
+        renderOrders();
+      } catch (err) {
+        console.error("My orders load error:", err);
+        const orderSection = document.getElementById("ordersSection");
+        orderSection.innerHTML = `<h2>Order Tracking</h2><p class="subtitle">Track your coffee orders in real-time</p>
+          <p style="color:#c94a4a;">Failed to load your orders. If you're logged in, check backend/API or token.</p>`;
+      }
+    }
+
+    // ---------- RENDER ORDERS ----------
     function renderOrders() {
       const orderSection = document.getElementById("ordersSection");
 
       orderSection.innerHTML = `<h2>My Orders</h2><p class="subtitle">Track your coffee orders</p>`;
 
-      const sorted = [...orders].sort((a, b) => b.id - a.id);
+      const sorted = (orders || []).slice().sort((a, b) => (b.id || 0) - (a.id || 0));
 
-      if (sorted.length === 0) {
+      if (!sorted.length) {
         orderSection.innerHTML += `<p style="text-align:center;color:#7b6a58;">No orders yet.</p>`;
         return;
       }
@@ -488,13 +636,17 @@
         const div = document.createElement("div");
         div.className = "order-card";
 
+        const itemsList = (order.items || []).map(it => `<li>${escapeHtml(it.name)} ×${it.qty}</li>`).join("");
+
+        const timeStr = order.time ? new Date(order.time).toLocaleString() : "";
+
         div.innerHTML = `
           <strong>Order #${order.id}</strong>
-          <span style="float:right;color:${getStatusColor(order.status)};">${order.status}</span>
-          <p style="color:#7b6a58;font-size:0.9rem;margin:0.5rem 0;">${order.time}</p>
+          <span style="float:right;color:${getStatusColor(order.status)};">${escapeHtml(order.status || "")}</span>
+          <p style="color:#7b6a58;font-size:0.9rem;margin:0.5rem 0;">${timeStr}</p>
 
           <ul style="list-style:none;margin-left:0;padding-left:0;line-height:1.5;">
-            ${order.items.map(it => `<li>${it.name} ×${it.qty}</li>`).join("")}
+            ${itemsList}
           </ul>
 
           <p><strong>Total:</strong> ₹${order.total}</p>
@@ -520,18 +672,24 @@
              status === "Served" ? "green" : "#7b6a58";
     }
 
+    // ---------- SECTION SWITCHER ----------
     function showSection(section) {
       document.getElementById("menuSection").style.display = section === "menu" ? "block" : "none";
       document.getElementById("cartSection").style.display = section === "cart" ? "block" : "none";
       document.getElementById("ordersSection").style.display = section === "orders" ? "block" : "none";
 
-      if (section === "orders") renderOrders();
+      if (section === "orders") loadMyOrders();
     }
 
-    renderMenu();
-    renderOrders();
+    // ---------- INIT ----------
+    // load menu and orders on page open
+    (function init() {
+      loadMenu();
+      loadMyOrders();
+      updateCart();
+    })();
+
   </script>
 
 </body>
 </html>
-
