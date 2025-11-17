@@ -4,27 +4,30 @@
   <meta charset="UTF-8">
   <title>Mocha~Mist — Customer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
+  /* GENERAL */
   body {
     font-family: Poppins, sans-serif;
-    background: #faf5ef;
+    background: #fbf7f1;
     margin: 0;
-    color: #4b3a2f;
+    color: #3c2f24;
   }
 
-  /* TOP NAV */
+  /* HEADER */
   header {
     background: #ffffff;
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     position: sticky;
     top: 0;
     z-index: 20;
+    border-bottom: 2px solid #c49a6c;
   }
   header h2 {
     font-weight: 600;
@@ -43,6 +46,7 @@
     color: #a5744c;
   }
 
+  /* MAIN */
   .container {
     padding: 30px 40px;
   }
@@ -53,7 +57,9 @@
     font-size: 28px;
   }
 
-  /* MENU GRID */
+  /* ============================
+        MENU GRID
+  ============================ */
   #menuGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -63,16 +69,14 @@
 
   .menu-card {
     background: #fff;
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 16px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    transition: 0.25s;
-    text-align: left;
+    transition: 0.3s;
   }
 
   .menu-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-5px);
   }
 
   .menu-card b {
@@ -101,12 +105,14 @@
     background: #4a2e1a;
   }
 
-  /* CART */
+  /* ============================
+        UPDATED CART
+  ============================ */
   #cartItems {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
   }
 
   .cart-item {
@@ -116,12 +122,31 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+  }
+
+  .cart-item img {
+    width: 70px;
+    height: 70px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-right: 1rem;
   }
 
   .cart-item .name {
     font-weight: 600;
     color: #6b4024;
+  }
+
+  .qty-controls button {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: #e7dfd7;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #4c3a2f;
   }
 
   button.remove {
@@ -149,7 +174,9 @@
     background: #4e2b16;
   }
 
-  /* ORDERS */
+  /* ============================
+        UPDATED ORDERS
+  ============================ */
   #ordersList {
     margin-top: 20px;
     display: flex;
@@ -162,16 +189,32 @@
     padding: 18px;
     border-radius: 16px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.09);
-    border-left: 4px solid #c49a6c;
+    border-left: 6px solid #c49a6c;
+    transition: 0.25s;
+  }
+
+  .order-card:hover {
+    transform: translateY(-4px);
   }
 
   .order-card b {
     color: #6b4024;
-    font-size: 18px;
+    font-size: 20px;
   }
 
-  .order-card small {
-    color: #8a7669;
+  .progress-container {
+    margin-top: 12px;
+    height: 8px;
+    background: #e6ddd4;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: linear-gradient(90deg, #6b4024, #c49a6c);
+    width: 0%;
+    transition: width 0.8s ease;
   }
 
   /* TOAST */
@@ -179,7 +222,7 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 9999;
+    z-index: 999;
   }
 
   .toast {
@@ -196,7 +239,7 @@
     from { opacity: 0; transform: translateX(50px); }
     to { opacity: 1; transform: translateX(0); }
   }
-</style>
+  </style>
 
 </head>
 
@@ -204,6 +247,7 @@
 
 <header>
   <h2>☕ Mocha~Mist</h2>
+
   <div class="nav-right">
     <a onclick="showSection('menu')">Menu</a>
     <a onclick="showSection('cart')">Cart <span id="cartCount">0</span></a>
@@ -213,18 +257,26 @@
 </header>
 
 <div class="container">
-  <section id="menuSection"><h1>Menu</h1><div id="menuGrid"></div></section>
 
+  <!-- MENU -->
+  <section id="menuSection">
+    <h1>Menu</h1>
+    <div id="menuGrid"></div>
+  </section>
+
+  <!-- CART -->
   <section id="cartSection" style="display:none;">
     <h1>Your Cart</h1>
     <div id="cartItems"></div>
     <button onclick="placeOrder()">Place Order</button>
   </section>
 
+  <!-- ORDERS -->
   <section id="ordersSection" style="display:none;">
     <h1>My Orders</h1>
     <div id="ordersList"></div>
   </section>
+
 </div>
 
 <script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
