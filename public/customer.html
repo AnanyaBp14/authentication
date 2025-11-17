@@ -2,186 +2,200 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>MochaMist — Customer NEW UI</title>
+  <title>Mocha~Mist — Customer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<style>
-body {
-  font-family: Poppins, sans-serif;
-  background: #f5efe6;
-  margin: 0;
-  color: #3c2f24;
-}
+  <style>
+  body {
+    font-family: Poppins, sans-serif;
+    background: #faf5ef;
+    margin: 0;
+    color: #4b3a2f;
+  }
 
-/* HEADER */
-header {
-  background: #fff;
-  padding: 18px 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  border-bottom: 2px solid #c49a6c;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
+  /* TOP NAV */
+  header {
+    background: #ffffff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  header h2 {
+    font-weight: 600;
+    color: #6b4024;
+  }
 
-header h2 {
-  font-size: 26px;
-  color: #6b4024;
-  font-weight: 600;
-}
+  .nav-right a {
+    margin-left: 1.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6b4024;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+  .nav-right a:hover {
+    color: #a5744c;
+  }
 
-nav a {
-  margin-left: 25px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #6b4024;
-  text-decoration: none;
-  font-size: 16px;
-}
+  .container {
+    padding: 30px 40px;
+  }
 
-/* CONTAINER */
-.container {
-  padding: 28px;
-}
+  h1 {
+    color: #6b4024;
+    margin-bottom: 10px;
+    font-size: 28px;
+  }
 
-/* SECTION TITLES */
-h1 {
-  font-size: 32px;
-  margin-bottom: 10px;
-  color: #6b4024;
-}
+  /* MENU GRID */
+  #menuGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+  }
 
-/* MENU (unchanged) */
-#menuGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 22px;
-}
+  .menu-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: 0.25s;
+    text-align: left;
+  }
 
-.menu-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
+  .menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
 
-.menu-card button {
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  background: #6b4024;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-}
+  .menu-card b {
+    color: #3b2a20;
+    font-size: 17px;
+  }
 
-/* ------------------------------------------------
-      NEW CART UI
-------------------------------------------------- */
+  .menu-card small {
+    color: #7f6f66;
+  }
 
-#cartItems {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 20px;
-}
+  .menu-card button {
+    margin-top: 12px;
+    width: 100%;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    background: #6b4024;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+  }
 
-.cart-item {
-  background: #fff;
-  padding: 20px;
-  border-radius: 18px;
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  align-items: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  border-left: 6px solid #c49a6c;
-}
+  .menu-card button:hover {
+    background: #4a2e1a;
+  }
 
-.cart-item img {
-  width: 75px;
-  height: 75px;
-  border-radius: 14px;
-  object-fit: cover;
-}
+  /* CART */
+  #cartItems {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
 
-.qty-controls button {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: #eadfd6;
-  font-size: 16px;
-  cursor: pointer;
-}
+  .cart-item {
+    background: #fff;
+    padding: 16px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
 
-.remove-btn {
-  background: none;
-  border: none;
-  color: #d64545;
-  font-size: 22px;
-  cursor: pointer;
-}
+  .cart-item .name {
+    font-weight: 600;
+    color: #6b4024;
+  }
 
-#cartSection button {
-  margin-top: 25px;
-  width: 260px;
-  padding: 14px;
-  font-size: 18px;
-  border-radius: 14px;
-  border: none;
-  background: #6b4024;
-  color: #fff;
-  font-weight: 600;
-}
+  button.remove {
+    background: #e05a4f;
+    border: none;
+    padding: 6px 10px;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+  }
 
-/* ------------------------------------------------
-      NEW ORDERS UI
-------------------------------------------------- */
+  #cartSection button {
+    margin-top: 20px;
+    width: 220px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #6b4024;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
 
-#ordersList {
-  margin-top: 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+  #cartSection button:hover {
+    background: #4e2b16;
+  }
 
-.order-card {
-  background: #fff;
-  padding: 22px;
-  border-radius: 20px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  border-left: 8px solid #c49a6c;
-  transition: 0.3s ease;
-}
+  /* ORDERS */
+  #ordersList {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
 
-.order-card:hover {
-  transform: translateY(-5px);
-}
+  .order-card {
+    background: #fff;
+    padding: 18px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+    border-left: 4px solid #c49a6c;
+  }
 
-.order-card b {
-  font-size: 20px;
-  color: #6b4024;
-}
+  .order-card b {
+    color: #6b4024;
+    font-size: 18px;
+  }
 
-.progress-container {
-  margin-top: 12px;
-  height: 10px;
-  background: #e6ddd4;
-  border-radius: 6px;
-  overflow: hidden;
-}
+  .order-card small {
+    color: #8a7669;
+  }
 
-.progress-bar {
-  height: 10px;
-  background: linear-gradient(90deg, #6b4024, #c49a6c);
-  width: 0%;
-  transition: width 0.6s ease;
-}
+  /* TOAST */
+  #toastBox {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+  }
+
+  .toast {
+    background: white;
+    padding: 15px 18px;
+    border-radius: 12px;
+    margin-top: 10px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.15);
+    border-left: 5px solid #c49a6c;
+    animation: slideIn 0.4s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
 </style>
 
 </head>
@@ -189,40 +203,34 @@ h1 {
 <body>
 
 <header>
-  <h2>☕ MochaMist</h2>
-  <nav>
+  <h2>☕ Mocha~Mist</h2>
+  <div class="nav-right">
     <a onclick="showSection('menu')">Menu</a>
     <a onclick="showSection('cart')">Cart <span id="cartCount">0</span></a>
     <a onclick="showSection('orders')">Orders</a>
     <a onclick="logout()">Logout</a>
-  </nav>
+  </div>
 </header>
 
 <div class="container">
+  <section id="menuSection"><h1>Menu</h1><div id="menuGrid"></div></section>
 
-  <!-- MENU -->
-  <section id="menuSection">
-    <h1>Menu</h1>
-    <div id="menuGrid"></div>
-  </section>
-
-  <!-- CART -->
   <section id="cartSection" style="display:none;">
     <h1>Your Cart</h1>
     <div id="cartItems"></div>
     <button onclick="placeOrder()">Place Order</button>
   </section>
 
-  <!-- ORDERS -->
   <section id="ordersSection" style="display:none;">
     <h1>My Orders</h1>
     <div id="ordersList"></div>
   </section>
-
 </div>
 
 <script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
-<script src="/customer.js?v=99"></script>
+<script src="/customer.js?v=10"></script>
+
+<div id="toastBox"></div>
 
 </body>
 </html>
