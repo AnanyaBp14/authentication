@@ -8,7 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-  /* GENERAL */
+  /* ------------------------------
+        GLOBAL
+  ------------------------------- */
   body {
     font-family: Poppins, sans-serif;
     background: #fbf7f1;
@@ -16,7 +18,6 @@
     color: #3c2f24;
   }
 
-  /* HEADER */
   header {
     background: #ffffff;
     padding: 1rem 2rem;
@@ -40,26 +41,21 @@
     font-weight: 500;
     color: #6b4024;
     text-decoration: none;
-    transition: 0.2s;
-  }
-  .nav-right a:hover {
-    color: #a5744c;
   }
 
-  /* MAIN */
   .container {
     padding: 30px 40px;
   }
 
   h1 {
     color: #6b4024;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-size: 28px;
   }
 
-  /* ============================
+  /* ------------------------------
         MENU GRID
-  ============================ */
+  ------------------------------- */
   #menuGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -75,18 +71,7 @@
     transition: 0.3s;
   }
 
-  .menu-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .menu-card b {
-    color: #3b2a20;
-    font-size: 17px;
-  }
-
-  .menu-card small {
-    color: #7f6f66;
-  }
+  .menu-card:hover { transform: translateY(-5px); }
 
   .menu-card button {
     margin-top: 12px;
@@ -98,16 +83,11 @@
     color: #fff;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.25s;
   }
 
-  .menu-card button:hover {
-    background: #4a2e1a;
-  }
-
-  /* ============================
-        UPDATED CART
-  ============================ */
+  /* ------------------------------
+        NEW MODERN CART
+  ------------------------------- */
   #cartItems {
     margin-top: 20px;
     display: flex;
@@ -117,12 +97,12 @@
 
   .cart-item {
     background: #fff;
-    padding: 16px;
-    border-radius: 14px;
+    padding: 18px;
+    border-radius: 16px;
     display: flex;
-    justify-content: space-between;
+    gap: 15px;
     align-items: center;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
   }
 
   .cart-item img {
@@ -130,65 +110,52 @@
     height: 70px;
     border-radius: 12px;
     object-fit: cover;
-    margin-right: 1rem;
-  }
-
-  .cart-item .name {
-    font-weight: 600;
-    color: #6b4024;
   }
 
   .qty-controls button {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     border: none;
     background: #e7dfd7;
     cursor: pointer;
-    font-size: 1rem;
-    color: #4c3a2f;
   }
 
-  button.remove {
-    background: #e05a4f;
+  .remove-btn {
+    background: none;
     border: none;
-    padding: 6px 10px;
-    color: #fff;
-    border-radius: 8px;
+    font-size: 1.2rem;
+    color: #c94a4a;
     cursor: pointer;
   }
 
   #cartSection button {
-    margin-top: 20px;
-    width: 220px;
+    margin-top: 25px;
+    width: 240px;
     padding: 12px;
-    border-radius: 12px;
-    border: none;
     background: #6b4024;
+    border: none;
+    border-radius: 14px;
     color: white;
-    font-size: 16px;
+    font-size: 17px;
     cursor: pointer;
   }
 
-  #cartSection button:hover {
-    background: #4e2b16;
-  }
-
-  /* ============================
-        UPDATED ORDERS
-  ============================ */
+  /* ------------------------------
+        NEW MODERN ORDERS
+  ------------------------------- */
   #ordersList {
-    margin-top: 20px;
+    margin-top: 25px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
   }
 
   .order-card {
     background: #fff;
-    padding: 18px;
-    border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     border-left: 6px solid #c49a6c;
     transition: 0.25s;
   }
@@ -197,16 +164,11 @@
     transform: translateY(-4px);
   }
 
-  .order-card b {
-    color: #6b4024;
-    font-size: 20px;
-  }
-
   .progress-container {
     margin-top: 12px;
     height: 8px;
     background: #e6ddd4;
-    border-radius: 5px;
+    border-radius: 6px;
     overflow: hidden;
   }
 
@@ -215,29 +177,6 @@
     background: linear-gradient(90deg, #6b4024, #c49a6c);
     width: 0%;
     transition: width 0.8s ease;
-  }
-
-  /* TOAST */
-  #toastBox {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 999;
-  }
-
-  .toast {
-    background: white;
-    padding: 15px 18px;
-    border-radius: 12px;
-    margin-top: 10px;
-    box-shadow: 0 5px 18px rgba(0,0,0,0.15);
-    border-left: 5px solid #c49a6c;
-    animation: slideIn 0.4s ease-out;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(50px); }
-    to { opacity: 1; transform: translateX(0); }
   }
   </style>
 
@@ -281,8 +220,6 @@
 
 <script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
 <script src="/customer.js?v=10"></script>
-
-<div id="toastBox"></div>
 
 </body>
 </html>
