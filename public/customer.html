@@ -2,197 +2,200 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Mocha~Mist — Customer</title>
+  <title>MochaMist — Customer NEW UI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: Poppins, sans-serif;
+  background: #f5efe6;
+  margin: 0;
+  color: #3c2f24;
+}
 
-  <style>
-  /* ------------------------------
-        GLOBAL
-  ------------------------------- */
-  body {
-    font-family: Poppins, sans-serif;
-    background: #fbf7f1;
-    margin: 0;
-    color: #3c2f24;
-  }
+/* HEADER */
+header {
+  background: #fff;
+  padding: 18px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  border-bottom: 2px solid #c49a6c;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
 
-  header {
-    background: #ffffff;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    border-bottom: 2px solid #c49a6c;
-  }
-  header h2 {
-    font-weight: 600;
-    color: #6b4024;
-  }
+header h2 {
+  font-size: 26px;
+  color: #6b4024;
+  font-weight: 600;
+}
 
-  .nav-right a {
-    margin-left: 1.5rem;
-    cursor: pointer;
-    font-weight: 500;
-    color: #6b4024;
-    text-decoration: none;
-  }
+nav a {
+  margin-left: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b4024;
+  text-decoration: none;
+  font-size: 16px;
+}
 
-  .container {
-    padding: 30px 40px;
-  }
+/* CONTAINER */
+.container {
+  padding: 28px;
+}
 
-  h1 {
-    color: #6b4024;
-    margin-bottom: 12px;
-    font-size: 28px;
-  }
+/* SECTION HEADERS */
+h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #6b4024;
+}
 
-  /* ------------------------------
-        MENU GRID
-  ------------------------------- */
-  #menuGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 25px;
-    margin-top: 20px;
-  }
+/* ------------------------------------------------
+      MENU (KEPT SIMPLE)
+------------------------------------------------- */
+#menuGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+}
 
-  .menu-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    transition: 0.3s;
-  }
+.menu-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
 
-  .menu-card:hover { transform: translateY(-5px); }
+.menu-card button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: #6b4024;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+}
 
-  .menu-card button {
-    margin-top: 12px;
-    width: 100%;
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
-    background: #6b4024;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-  }
+/* ------------------------------------------------
+      🔥 BRAND NEW CART UI
+------------------------------------------------- */
+#cartItems {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 20px;
+}
 
-  /* ------------------------------
-        NEW MODERN CART
-  ------------------------------- */
-  #cartItems {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
+.cart-item {
+  background: #fff;
+  padding: 20px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-left: 6px solid #c49a6c;
+}
 
-  .cart-item {
-    background: #fff;
-    padding: 18px;
-    border-radius: 16px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  }
+.cart-item img {
+  width: 75px;
+  height: 75px;
+  border-radius: 14px;
+  object-fit: cover;
+}
 
-  .cart-item img {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-    object-fit: cover;
-  }
+.qty-controls button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #eadfd6;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-  .qty-controls button {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: none;
-    background: #e7dfd7;
-    cursor: pointer;
-  }
+.remove-btn {
+  background: none;
+  border: none;
+  color: #d64545;
+  font-size: 22px;
+  cursor: pointer;
+}
 
-  .remove-btn {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #c94a4a;
-    cursor: pointer;
-  }
+#cartSection button {
+  margin-top: 25px;
+  width: 260px;
+  padding: 14px;
+  font-size: 18px;
+  border-radius: 14px;
+  border: none;
+  background: #6b4024;
+  color: #fff;
+  font-weight: 600;
+}
 
-  #cartSection button {
-    margin-top: 25px;
-    width: 240px;
-    padding: 12px;
-    background: #6b4024;
-    border: none;
-    border-radius: 14px;
-    color: white;
-    font-size: 17px;
-    cursor: pointer;
-  }
+/* ------------------------------------------------
+      🔥 BRAND NEW ORDERS UI
+------------------------------------------------- */
+#ordersList {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-  /* ------------------------------
-        NEW MODERN ORDERS
-  ------------------------------- */
-  #ordersList {
-    margin-top: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+.order-card {
+  background: #fff;
+  padding: 22px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  border-left: 8px solid #c49a6c;
+  transition: 0.3s;
+}
 
-  .order-card {
-    background: #fff;
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    border-left: 6px solid #c49a6c;
-    transition: 0.25s;
-  }
+.order-card:hover {
+  transform: translateY(-5px);
+}
 
-  .order-card:hover {
-    transform: translateY(-4px);
-  }
+.order-card b {
+  font-size: 20px;
+  color: #6b4024;
+}
 
-  .progress-container {
-    margin-top: 12px;
-    height: 8px;
-    background: #e6ddd4;
-    border-radius: 6px;
-    overflow: hidden;
-  }
+.progress-container {
+  margin-top: 12px;
+  height: 10px;
+  background: #e6ddd4;
+  border-radius: 6px;
+  overflow: hidden;
+}
 
-  .progress-bar {
-    height: 8px;
-    background: linear-gradient(90deg, #6b4024, #c49a6c);
-    width: 0%;
-    transition: width 0.8s ease;
-  }
-  </style>
+.progress-bar {
+  height: 10px;
+  background: linear-gradient(90deg, #6b4024, #c49a6c);
+  width: 0%;
+  transition: width 0.6s ease;
+}
+</style>
 
 </head>
 
 <body>
 
 <header>
-  <h2>☕ Mocha~Mist</h2>
-
-  <div class="nav-right">
+  <h2>☕ MochaMist</h2>
+  <nav>
     <a onclick="showSection('menu')">Menu</a>
     <a onclick="showSection('cart')">Cart <span id="cartCount">0</span></a>
     <a onclick="showSection('orders')">Orders</a>
     <a onclick="logout()">Logout</a>
-  </div>
+  </nav>
 </header>
 
 <div class="container">
@@ -219,7 +222,7 @@
 </div>
 
 <script src="https://mochamist.onrender.com/socket.io/socket.io.js"></script>
-<script src="/customer.js?v=10"></script>
+<script src="/customer.js?v=99"></script>
 
 </body>
 </html>
